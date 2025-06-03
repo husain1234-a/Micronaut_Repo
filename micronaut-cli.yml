@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: com.yash.usermanagementsystem
+testFramework: junit
+sourceLanguage: java
+buildTool: maven
+features: [annotation-api, app-name, http-client, java, java-application, json-schema, junit, logback, maven, maven-enforcer-plugin, micronaut-aot, micronaut-http-validation, netty-server, openapi, properties, readme, serialization-jackson, shade, static-resources, swagger-ui]
