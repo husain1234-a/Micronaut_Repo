@@ -14,11 +14,13 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendEmail(String to, String subject, String body) {
+        // Create Email using the static of() method or constructor
         Email email = Email.builder()
                 .to(to)
                 .subject(subject)
                 .body(body)
                 .build();
+
         emailSender.send(email);
     }
 }
