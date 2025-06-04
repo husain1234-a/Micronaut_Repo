@@ -5,12 +5,16 @@ import com.yash.usermanagementsystem.model.User;
 import com.yash.usermanagementsystem.repository.UserRepository;
 import com.yash.usermanagementsystem.service.EmailService;
 import com.yash.usermanagementsystem.service.UserService;
-import io.micronaut.security.authentication.Authentication;
-import io.micronaut.security.token.jwt.generator.JwtTokenGenerator;
+// import io.micronaut.security.authentication.Authentication;
+// import io.micronaut.security.authentication.AuthenticationResponse;
+// import io.micronaut.security.authentication.UsernamePasswordCredentials;
+// import io.micronaut.security.token.jwt.generator.JwtTokenGenerator;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,8 +28,8 @@ public class UserServiceImpl implements UserService {
     @Inject
     private EmailService emailService;
 
-    @Inject
-    private JwtTokenGenerator tokenGenerator;
+    // @Inject
+    // private JwtTokenGenerator tokenGenerator;
 
     @Override
     @Transactional
@@ -88,9 +92,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void sendNotification(UUID userId, String message) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        emailService.sendEmail(user.getEmail(), "Notification", message);
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            emailService.sendEmail(user.getEmail(), "Notification", message);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send notification: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -103,25 +111,43 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String login(UserDTO loginDTO) {
-        User user = userRepository.findByEmail(loginDTO.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+        try {
+            User user = userRepository.findByEmail(loginDTO.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!user.getPassword().equals(loginDTO.getPassword())) { // Should use proper password comparison in production
-            throw new RuntimeException("Invalid credentials");
+            if (!user.getPassword().equals(loginDTO.getPassword())) { // Note: In production, use proper password hashing
+                throw new RuntimeException("Invalid password");
+            }
+
+            // For testing, just return a simple success message
+            return "Login successful for user: " + user.getEmail();
+
+            // Commented out JWT token generation
+            /*
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("sub", user.getEmail());
+            claims.put("roles", user.getRole());
+
+            return tokenGenerator.generateToken(claims)
+                    .orElseThrow(() -> new RuntimeException("Failed to generate token"));
+            */
+        } catch (Exception e) {
+            throw new RuntimeException("Login failed: " + e.getMessage(), e);
         }
-
-        // Generate JWT token
-        return tokenGenerator.generateToken(user.getEmail(), user.getRole());
     }
 
     @Override
     public void requestPasswordReset(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Create password reset request and notify admin
-        emailService.sendEmail("admin@example.com", "Password Reset Request",
-                "User " + user.getEmail() + " has requested a password reset.");
+            // Create password reset request and notify admin
+            emailService.sendEmail("admin@example.com", "Password Reset Request",
+                    "User " + user.getEmail() + " has requested a password reset.");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to request password reset: " + e.getMessage(), e);
+        }
     }
 
     @Override

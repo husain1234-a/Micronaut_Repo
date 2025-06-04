@@ -4,6 +4,19 @@ datasources:
     username: postgres
     password: admin
     driverClassName: org.postgresql.Driver
+    dialect: POSTGRES
+    hibernate:
+      hbm2ddl:
+        auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        jdbc:
+          batch_size: 50
+        connection:
+          pool_size: 5
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 jpa:
   default:
@@ -22,12 +35,19 @@ micronaut:
       swagger:
         paths: classpath:META-INF/swagger
         mapping: /swagger/**
-  security:
-    enabled: true
-    token:
-      jwt:
-        enabled: true
-        signatures:
-          secret:
-            generator:
-              secret: "your-secret-key-here-min-256-bits" 
+  # security:
+  #   enabled: true
+  #   token:
+  #     jwt:
+  #       enabled: true
+  #       signatures:
+  #         secret:
+  #           generator:
+  #             secret: "your-secret-key-here-min-256-bits"
+  email:
+    host: "smtp.gmail.com"
+    port: 587
+    username: "vbook.yash@gmail.com"
+    password: "thke xcps iqru fcfd"
+    auth: true
+    starttls: true

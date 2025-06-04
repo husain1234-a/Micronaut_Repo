@@ -1,11 +1,13 @@
 package com.yash.usermanagementsystem.dto;
 
 import com.yash.usermanagementsystem.model.Gender;
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.annotation.Nullable;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.UUID;
 
+@Introspected
 public class UserDTO {
     private UUID id;
 
@@ -43,6 +45,9 @@ public class UserDTO {
     private UUID addressId;
 
     private String role = "USER";
+
+    public UserDTO() {
+    }
 
     // Getters and Setters
     public UUID getId() {
