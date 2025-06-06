@@ -9,5 +9,5 @@ import java.util.UUID;
 @Repository
 public interface AddressRepository extends JpaRepository<Address, UUID> {
     List<Address> findByUserId(UUID userId);
-    List<Address> findByUserIdAndIsPrimaryTrue(UUID userId);
+    List<Address> findByUserIdAndPrimaryTrue(UUID userId);
 } 

@@ -2,60 +2,73 @@ package com.yash.usermanagementsystem.dto;
 
 import com.yash.usermanagementsystem.model.Gender;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.annotation.Serdeable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Introspected
+@Serdeable
+@Schema(description = "User data transfer object")
 public class UserDTO {
-    private UUID id;
+    
+    @Schema(description = "User ID", example = "1")
+    private Long id;
 
-    @NotBlank
-    @Size(min = 2, max = 50)
-    @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "First name should not contain special characters")
+    @Schema(description = "Username", example = "john.doe@example.com")
+    private String username;
+
+    @Schema(description = "First name", example = "John")
+    @NotBlank(message = "First name is required")
+    @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
     private String firstName;
 
-    @Nullable
-    @Size(min = 2, max = 50)
-    @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Last name should not contain special characters")
+    @Schema(description = "Last name", example = "Doe")
+    @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     private String lastName;
 
-    @NotBlank
-    @Email
+    @Schema(description = "Email address", example = "john.doe@example.com")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @NotBlank
-    @Size(min = 8)
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[A-Z]).*$", message = "Password must contain at least one number and one uppercase letter")
+    @Schema(description = "Password", example = "password123")
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
-    @Nullable
+    @Schema(description = "Gender", example = "MALE")
     private Gender gender;
 
-    @Nullable
-    @Past
+    @Schema(description = "Date of birth", example = "1990-01-01")
+    @Past(message = "Date of birth must be in the past")
     private LocalDate dateOfBirth;
 
-    @Nullable
+    @Schema(description = "Phone number", example = "+1234567890")
     @Pattern(regexp = "^\\+[1-9]\\d{1,14}$", message = "Phone number must be in E.164 format")
     private String phoneNumber;
 
-    @Nullable
-    private UUID addressId;
+    @Schema(description = "User role", example = "USER")
+    private String role;
 
-    private String role = "USER";
-
-    public UserDTO() {
-    }
+    // Default constructor
+    public UserDTO() {}
 
     // Getters and Setters
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getFirstName() {
@@ -112,14 +125,6 @@ public class UserDTO {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
-    }
-
-    public UUID getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(UUID addressId) {
-        this.addressId = addressId;
     }
 
     public String getRole() {

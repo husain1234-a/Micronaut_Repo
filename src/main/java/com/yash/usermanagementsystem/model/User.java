@@ -1,17 +1,34 @@
 package com.yash.usermanagementsystem.model;
 
-import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.annotation.Introspected;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import jakarta.annotation.Nullable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@Introspected
 public class User {
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank
+    @Size(min = 3, max = 50)
+    @Column(unique = true)
+    private String username;
+
+    @NotBlank
+    @Email
+    @Column(unique = true)
+    private String email;
+
+    @NotBlank
+    @Size(min = 6)
+    private String password;
 
     @NotBlank
     @Size(min = 2, max = 50)
@@ -24,16 +41,6 @@ public class User {
     @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Last name should not contain special characters")
     @Column(name = "last_name")
     private String lastName;
-
-    @NotBlank
-    @Email
-    @Column(unique = true)
-    private String email;
-
-    @NotBlank
-    @Size(min = 8)
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[A-Z]).*$", message = "Password must contain at least one number and one uppercase letter")
-    private String password;
 
     @Nullable
     @Enumerated(EnumType.STRING)
@@ -57,29 +64,38 @@ public class User {
     @Column(name = "role")
     private String role = "USER";
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
     // Getters and Setters
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
@@ -96,6 +112,22 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public Gender getGender() {
@@ -136,5 +168,21 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

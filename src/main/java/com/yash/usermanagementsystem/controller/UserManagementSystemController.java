@@ -13,7 +13,6 @@ import io.micronaut.http.annotation.QueryValue;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import java.util.List;
-import java.util.UUID;
 
 @Controller("/api/users")
 @Tag(name = "User Management")
@@ -28,7 +27,7 @@ public class UserManagementSystemController {
     }
 
     @Put("/{id}")
-    public UserDTO updateUser(UUID id, @Body UserDTO userDTO) {
+    public UserDTO updateUser(Long id, @Body UserDTO userDTO) {
         return userService.updateUser(id, userDTO);
     }
 
@@ -38,12 +37,12 @@ public class UserManagementSystemController {
     }
 
     @Get("/{id}")
-    public UserDTO getUserById(UUID id) {
+    public UserDTO getUserById(Long id) {
         return userService.getUserById(id);
     }
 
     @Delete("/{id}")
-    public void deleteUser(UUID id) {
+    public void deleteUser(Long id) {
         userService.deleteUser(id);
     }
 
@@ -63,12 +62,12 @@ public class UserManagementSystemController {
     }
 
     @Post("/{id}/notify")
-    public void sendNotification(UUID id, @QueryValue String message) {
+    public void sendNotification(Long id, @QueryValue String message) {
         userService.sendNotification(id, message);
     }
 
     @Post("/{id}/approve-reset")
-    public void approvePasswordReset(UUID id) {
+    public void approvePasswordReset(Long id) {
         userService.approvePasswordReset(id);
     }
 

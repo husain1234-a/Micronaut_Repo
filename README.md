@@ -6,24 +6,14 @@
 - [Micronaut Guides](https://guides.micronaut.io/index.html)
 ---
 
-- [Micronaut Maven Plugin documentation](https://micronaut-projects.github.io/micronaut-maven-plugin/latest/)
-## Feature json-schema documentation
+- [Micronaut Gradle Plugin documentation](https://micronaut-projects.github.io/micronaut-gradle-plugin/latest/)
+- [GraalVM Gradle Plugin documentation](https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html)
+- [Shadow Gradle Plugin](https://gradleup.com/shadow/)
+## Feature openapi-explorer documentation
 
-- [Micronaut JSON Schema documentation](https://micronaut-projects.github.io/micronaut-json-schema/latest/guide/)
+- [Micronaut OpenAPI Explorer View documentation](https://micronaut-projects.github.io/micronaut-openapi/latest/guide/#openapiExplorer)
 
-- [https://json-schema.org/learn/getting-started-step-by-step](https://json-schema.org/learn/getting-started-step-by-step)
-
-
-## Feature annotation-api documentation
-
-- [https://jakarta.ee/specifications/annotations/](https://jakarta.ee/specifications/annotations/)
-
-
-## Feature swagger-ui documentation
-
-- [Micronaut Swagger UI documentation](https://micronaut-projects.github.io/micronaut-openapi/latest/guide/index.html)
-
-- [https://swagger.io/tools/swagger-ui/](https://swagger.io/tools/swagger-ui/)
+- [https://github.com/Authress-Engineering/openapi-explorer](https://github.com/Authress-Engineering/openapi-explorer)
 
 
 ## Feature openapi documentation
@@ -33,9 +23,16 @@
 - [https://www.openapis.org](https://www.openapis.org)
 
 
-## Feature http-client documentation
+## Feature swagger-ui documentation
 
-- [Micronaut HTTP Client documentation](https://docs.micronaut.io/latest/guide/index.html#nettyHttpClient)
+- [Micronaut Swagger UI documentation](https://micronaut-projects.github.io/micronaut-openapi/latest/guide/index.html)
+
+- [https://swagger.io/tools/swagger-ui/](https://swagger.io/tools/swagger-ui/)
+
+
+## Feature micronaut-aot documentation
+
+- [Micronaut AOT documentation](https://micronaut-projects.github.io/micronaut-aot/latest/guide/)
 
 
 ## Feature serialization-jackson documentation
@@ -43,13 +40,13 @@
 - [Micronaut Serialization Jackson Core documentation](https://micronaut-projects.github.io/micronaut-serialization/latest/guide/)
 
 
-## Feature maven-enforcer-plugin documentation
+## Feature test-resources documentation
 
-- [https://maven.apache.org/enforcer/maven-enforcer-plugin/](https://maven.apache.org/enforcer/maven-enforcer-plugin/)
+- [Micronaut Test Resources documentation](https://micronaut-projects.github.io/micronaut-test-resources/latest/guide/)
 
 
-## Feature micronaut-aot documentation
+## Feature jdbc-hikari documentation
 
-- [Micronaut AOT documentation](https://micronaut-projects.github.io/micronaut-aot/latest/guide/)
+- [Micronaut Hikari JDBC Connection Pool documentation](https://micronaut-projects.github.io/micronaut-sql/latest/guide/index.html#jdbc)
 
 
