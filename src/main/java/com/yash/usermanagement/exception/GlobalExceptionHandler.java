@@ -2,6 +2,7 @@ package com.yash.usermanagement.exception;
 
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Produces;
 import io.micronaut.http.server.exceptions.ExceptionHandler;
 import jakarta.inject.Singleton;
@@ -23,9 +24,12 @@ public class GlobalExceptionHandler implements ExceptionHandler<Exception, HttpR
         if (exception instanceof ResourceNotFoundException) {
             LOG.warn("Resource not found: {}", exception.getMessage());
             return HttpResponse.notFound(new ErrorResponse(404, exception.getMessage()));
-        } else if (exception instanceof ConstraintViolationException) {
+        } else if (exception instanceof ConstraintViolationException || exception instanceof ValidationException) {
             LOG.warn("Validation error: {}", exception.getMessage());
             return HttpResponse.badRequest(new ErrorResponse(400, "Validation error: " + exception.getMessage()));
+        } else if (exception instanceof DuplicateResourceException) {
+            LOG.warn("Duplicate resource: {}", exception.getMessage());
+            return HttpResponse.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, exception.getMessage()));
         } else if (exception instanceof DatabaseException) {
             LOG.error("Database error: {}", exception.getMessage(), exception);
             return HttpResponse.serverError(new ErrorResponse(500, "Database error: " + exception.getMessage()));
