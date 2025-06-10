@@ -7,6 +7,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 
+import com.yash.usermanagement.dto.AddressResponse;
+import com.yash.usermanagement.dto.CreateAddressRequest;
+import com.yash.usermanagement.dto.UpdateAddressRequest;
 import com.yash.usermanagement.model.Address;
 import com.yash.usermanagement.service.AddressService;
 import com.yash.usermanagement.exception.ResourceNotFoundException;
@@ -24,10 +27,11 @@ public class AddressController {
 
     @Post
     @Operation(summary = "Create a new address")
-    public HttpResponse<Address> createAddress(@Body @Valid Address address) {
+    public HttpResponse<AddressResponse> createAddress(@Body @Valid CreateAddressRequest request) {
         try {
+            Address address = convertToAddress(request);
             Address createdAddress = addressService.createAddress(address);
-            return HttpResponse.created(createdAddress);
+            return HttpResponse.created(convertToAddressResponse(createdAddress));
         } catch (ValidationException e) {
             throw e;
         }
@@ -35,9 +39,10 @@ public class AddressController {
 
     @Get("/{id}")
     @Operation(summary = "Get address by ID")
-    public HttpResponse<Address> getAddressById(@PathVariable UUID id) {
+    public HttpResponse<AddressResponse> getAddressById(@PathVariable UUID id) {
         try {
             return addressService.getAddressById(id)
+                    .map(this::convertToAddressResponse)
                     .map(HttpResponse::ok)
                     .orElseThrow(() -> new ResourceNotFoundException("Address not found with id: " + id));
         } catch (ResourceNotFoundException e) {
@@ -47,10 +52,12 @@ public class AddressController {
 
     @Put("/{id}")
     @Operation(summary = "Update address by ID")
-    public HttpResponse<Address> updateAddress(@PathVariable UUID id, @Body @Valid Address address) {
+    public HttpResponse<AddressResponse> updateAddress(@PathVariable UUID id,
+            @Body @Valid UpdateAddressRequest request) {
         try {
+            Address address = convertToAddress(request);
             Address updatedAddress = addressService.updateAddress(id, address);
-            return HttpResponse.ok(updatedAddress);
+            return HttpResponse.ok(convertToAddressResponse(updatedAddress));
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (ValidationException e) {
@@ -67,5 +74,40 @@ public class AddressController {
         } catch (ResourceNotFoundException e) {
             throw e;
         }
+    }
+
+    // Helper methods for conversion
+    private Address convertToAddress(CreateAddressRequest request) {
+        Address address = new Address();
+        address.setStreetAddress(request.getStreetAddress());
+        address.setCity(request.getCity());
+        address.setState(request.getState());
+        address.setCountry(request.getCountry());
+        address.setPostalCode(request.getPostalCode());
+        address.setAddressType(request.getAddressType());
+        return address;
+    }
+
+    private Address convertToAddress(UpdateAddressRequest request) {
+        Address address = new Address();
+        address.setStreetAddress(request.getStreetAddress());
+        address.setCity(request.getCity());
+        address.setState(request.getState());
+        address.setCountry(request.getCountry());
+        address.setPostalCode(request.getPostalCode());
+        address.setAddressType(request.getAddressType());
+        return address;
+    }
+
+    private AddressResponse convertToAddressResponse(Address address) {
+        AddressResponse response = new AddressResponse();
+        response.setId(address.getId());
+        response.setStreetAddress(address.getStreetAddress());
+        response.setCity(address.getCity());
+        response.setState(address.getState());
+        response.setCountry(address.getCountry());
+        response.setPostalCode(address.getPostalCode());
+        response.setAddressType(address.getAddressType());
+        return response;
     }
 }

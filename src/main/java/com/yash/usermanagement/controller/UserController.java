@@ -8,6 +8,9 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yash.usermanagement.dto.CreateUserRequest;
+import com.yash.usermanagement.dto.UpdateUserRequest;
+import com.yash.usermanagement.dto.UserResponse;
 import com.yash.usermanagement.model.User;
 import com.yash.usermanagement.service.UserService;
 import com.yash.usermanagement.exception.ResourceNotFoundException;
@@ -17,6 +20,7 @@ import com.yash.usermanagement.exception.DuplicateResourceException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller("/api/users")
 @Tag(name = "User Management")
@@ -31,11 +35,12 @@ public class UserController {
 
     @Post
     @Operation(summary = "Create a new user")
-    public HttpResponse<User> createUser(@Body @Valid User user) {
+    public HttpResponse<UserResponse> createUser(@Body @Valid CreateUserRequest request) {
         LOG.info("Creating new user");
         try {
+            User user = convertToUser(request);
             User createdUser = userService.createUser(user);
-            return HttpResponse.created(createdUser);
+            return HttpResponse.created(convertToUserResponse(createdUser));
         } catch (DuplicateResourceException e) {
             LOG.warn("Duplicate user creation attempted: {}", e.getMessage());
             throw e;
@@ -47,19 +52,22 @@ public class UserController {
 
     @Get
     @Operation(summary = "Get all users")
-    public HttpResponse<List<User>> getAllUsers() {
+    public HttpResponse<List<UserResponse>> getAllUsers() {
         LOG.info("Fetching all users");
         List<User> users = userService.getAllUsers();
-        return HttpResponse.ok(users);
+        List<UserResponse> userResponses = users.stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+        return HttpResponse.ok(userResponses);
     }
 
     @Get("/{id}")
     @Operation(summary = "Get user by ID")
-    public HttpResponse<User> getUserById(@PathVariable UUID id) {
+    public HttpResponse<UserResponse> getUserById(@PathVariable UUID id) {
         LOG.info("Fetching user with id: {}", id);
         try {
             User user = userService.getUserById(id);
-            return HttpResponse.ok(user);
+            return HttpResponse.ok(convertToUserResponse(user));
         } catch (ResourceNotFoundException e) {
             LOG.warn("User not found with id: {}", id);
             throw e;
@@ -68,11 +76,12 @@ public class UserController {
 
     @Put("/{id}")
     @Operation(summary = "Update user")
-    public HttpResponse<User> updateUser(@PathVariable UUID id, @Body @Valid User user) {
+    public HttpResponse<UserResponse> updateUser(@PathVariable UUID id, @Body @Valid UpdateUserRequest request) {
         LOG.info("Updating user with id: {}", id);
         try {
+            User user = convertToUser(request);
             User updatedUser = userService.updateUser(id, user);
-            return HttpResponse.ok(updatedUser);
+            return HttpResponse.ok(convertToUserResponse(updatedUser));
         } catch (ResourceNotFoundException e) {
             LOG.warn("User not found for update with id: {}", id);
             throw e;
@@ -97,10 +106,11 @@ public class UserController {
 
     @Get("/email/{email}")
     @Operation(summary = "Get user by email")
-    public HttpResponse<User> getUserByEmail(@PathVariable String email) {
+    public HttpResponse<UserResponse> getUserByEmail(@PathVariable String email) {
         LOG.info("Finding user by email: {}", email);
         try {
             return userService.findByEmail(email)
+                    .map(this::convertToUserResponse)
                     .map(HttpResponse::ok)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
         } catch (ValidationException e) {
@@ -133,5 +143,47 @@ public class UserController {
             LOG.warn("User not found for password change approval with id: {}", id);
             throw e;
         }
+    }
+
+    // Helper methods for conversion
+    private User convertToUser(CreateUserRequest request) {
+        User user = new User();
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setEmail(request.getEmail());
+        user.setPassword(request.getPassword());
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setGender(request.getGender());
+        user.setRole(request.getRole());
+        user.setAddress(request.getAddress());
+        return user;
+    }
+
+    private User convertToUser(UpdateUserRequest request) {
+        User user = new User();
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setEmail(request.getEmail());
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setGender(request.getGender());
+        user.setRole(request.getRole());
+        user.setAddress(request.getAddress());
+        return user;
+    }
+
+    private UserResponse convertToUserResponse(User user) {
+        UserResponse response = new UserResponse();
+        response.setId(user.getId());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
+        response.setDateOfBirth(user.getDateOfBirth());
+        response.setAddress(user.getAddress());
+        response.setPhoneNumber(user.getPhoneNumber());
+        response.setGender(user.getGender());
+        response.setRole(user.getRole());
+        return response;
     }
 }
