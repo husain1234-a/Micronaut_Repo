@@ -1,10 +1,6 @@
 micronaut:
   application:
-    name: usermanagementsystem
-  server:
-    port: 8080
-  security:
-    enabled: false
+    name: user-management
   router:
     static-resources:
       swagger:
@@ -13,12 +9,22 @@ micronaut:
       swagger-ui:
         paths: classpath:META-INF/swagger/views/swagger-ui
         mapping: /swagger-ui/**
-      openapi:
-        paths: classpath:META-INF/swagger
-        mapping: /openapi/**
-      openapi-explorer:
-        paths: classpath:META-INF/swagger/views/openapi-explorer
-        mapping: /openapi-explorer/**
+  server:
+    port: 8080
+  data:
+    jdbc:
+      repositories:
+        enabled: true
+      default:
+        enabled: true
+        dialect: POSTGRES
+        schema-generate: CREATE
+        schema-generate-sources: CLASSES
+        schema-generate-databases: true
+        schema-generate-create: true
+        schema-generate-drop: true
+        schema-generate-create-sources: CLASSES
+        schema-generate-drop-sources: CLASSES
 
 datasources:
   default:
@@ -27,30 +33,25 @@ datasources:
     password: admin123
     driverClassName: org.postgresql.Driver
     dialect: POSTGRES
-    poolName: "HikariPool-1"
-    maximumPoolSize: 5
-    minimumIdle: 1
+    schema-generate:
+      create: true
+      use-foreign-keys: true
+    db-type: postgres
+    poolName: HikariPool
+    maximumPoolSize: 10
+    minimumIdle: 5
     idleTimeout: 300000
-    connectionTimeout: 30000
+    connectionTimeout: 20000
     maxLifetime: 1200000
+    validationQuery: "SELECT 1"
+    testOnBorrow: true
+    testOnReturn: false
+    testWhileIdle: true
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    jmxEnabled: true
 
-jpa:
-  default:
-    entity-scan:
-      packages: "com.yash.usermanagementsystem"
-    properties:
-      hibernate:
-        hbm2ddl:
-          auto: update
-        show_sql: true
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-      javax:
-        persistence:
-          jdbc:
-            driver: org.postgresql.Driver
-    repositories:
-      enabled: true
-
-test-resources:
-  enabled: false
+openapi:
+  title: User Management API
+  version: 1.0
+  description: API for managing users and their addresses 
