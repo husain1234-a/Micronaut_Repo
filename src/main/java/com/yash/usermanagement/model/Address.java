@@ -1,12 +1,12 @@
 package com.yash.usermanagement.model;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.data.annotation.*;
 import jakarta.validation.constraints.*;
 import java.util.UUID;
 
 @MappedEntity("addresses")
-@Introspected
+@Serdeable
 public class Address {
 
     @Id

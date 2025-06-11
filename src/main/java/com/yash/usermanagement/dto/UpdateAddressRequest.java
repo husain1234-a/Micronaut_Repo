@@ -1,11 +1,11 @@
 package com.yash.usermanagement.dto;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import com.yash.usermanagement.model.AddressType;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-@Introspected
+@Serdeable
 public class UpdateAddressRequest {
 
     @Size(max = 100, message = "Street must not exceed 100 characters")

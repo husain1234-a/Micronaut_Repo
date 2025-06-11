@@ -1,13 +1,13 @@
 package com.yash.usermanagement.dto;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import com.yash.usermanagement.model.AddressType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-@Introspected
+@Serdeable
 public class CreateAddressRequest {
 
     @NotBlank(message = "Street is required")

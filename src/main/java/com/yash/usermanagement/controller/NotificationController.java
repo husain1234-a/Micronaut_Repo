@@ -87,47 +87,42 @@ public class NotificationController {
     @Operation(summary = "Test welcome notification")
     public void testWelcomeNotification(@Body TestNotificationRequest request) {
         notificationService.sendUserCreationNotification(
-            request.getUserId(),
-            request.getEmail(),
-            request.getPassword()
-        );
+                request.getUserId(),
+                request.getEmail(),
+                request.getPassword());
     }
 
     @Post("/test/reset-request")
     @Operation(summary = "Test password reset request notification")
     public void testResetRequestNotification(@Body TestNotificationRequest request) {
         notificationService.sendPasswordResetRequestNotification(
-            request.getUserId(),
-            request.getEmail()
-        );
+                request.getUserId(),
+                request.getEmail());
     }
 
     @Post("/test/reset-approval")
     @Operation(summary = "Test password reset approval notification")
     public void testResetApprovalNotification(@Body TestNotificationRequest request) {
         notificationService.sendPasswordResetApprovalNotification(
-            request.getUserId(),
-            request.getEmail()
-        );
+                request.getUserId(),
+                request.getEmail());
     }
 
     @Post("/test/password-change")
     @Operation(summary = "Test password change notification")
     public void testPasswordChangeNotification(@Body TestNotificationRequest request) {
         notificationService.sendPasswordChangeNotification(
-            request.getUserId(),
-            request.getEmail()
-        );
+                request.getUserId(),
+                request.getEmail());
     }
 
     @Post("/test/broadcast")
     @Operation(summary = "Test broadcast notification")
     public void testBroadcastNotification(@Body BroadcastNotificationRequest request) {
         notificationService.broadcastNotification(
-            request.getTitle(),
-            request.getMessage(),
-            request.getPriority()
-        );
+                request.getTitle(),
+                request.getMessage(),
+                request.getPriority());
     }
 }
 
@@ -191,4 +186,4 @@ class BroadcastNotificationRequest {
     public void setPriority(NotificationPriority priority) {
         this.priority = priority;
     }
-} 
+}

@@ -1,10 +1,10 @@
 package com.yash.usermanagement.dto;
 
 import com.yash.usermanagement.model.AddressType;
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import java.util.UUID;
 
-@Introspected
+@Serdeable
 public class AddressResponse {
     private UUID id;
     private String streetAddress;

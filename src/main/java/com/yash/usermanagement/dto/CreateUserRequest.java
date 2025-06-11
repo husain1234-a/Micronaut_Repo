@@ -3,7 +3,7 @@ package com.yash.usermanagement.dto;
 import com.yash.usermanagement.model.Address;
 import com.yash.usermanagement.model.Gender;
 import com.yash.usermanagement.model.UserRole;
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
-@Introspected
+@Serdeable
 public class CreateUserRequest {
 
     @NotBlank(message = "First name is required")

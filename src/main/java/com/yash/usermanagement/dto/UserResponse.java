@@ -3,11 +3,11 @@ package com.yash.usermanagement.dto;
 import com.yash.usermanagement.model.Address;
 import com.yash.usermanagement.model.Gender;
 import com.yash.usermanagement.model.UserRole;
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import java.time.LocalDate;
 import java.util.UUID;
 
-@Introspected
+@Serdeable
 public class UserResponse {
     private UUID id;
     private String firstName;

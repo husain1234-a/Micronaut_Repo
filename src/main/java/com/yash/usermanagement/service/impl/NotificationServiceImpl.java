@@ -28,9 +28,9 @@ public class NotificationServiceImpl implements NotificationService {
     private final EmailConfig emailConfig;
 
     public NotificationServiceImpl(NotificationRepository notificationRepository,
-                                 UserRepository userRepository,
-                                 EmailSender<?, ?> emailSender,
-                                 EmailConfig emailConfig) {
+            UserRepository userRepository,
+            EmailSender<?, ?> emailSender,
+            EmailConfig emailConfig) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.emailSender = emailSender;
@@ -95,14 +95,13 @@ public class NotificationServiceImpl implements NotificationService {
                     .subject("Welcome to User Management System")
                     .body(new MultipartBody(
                             "Welcome to User Management System!\n\n" +
-                            "Your account has been created successfully.\n" +
-                            "Your temporary password is: " + password + "\n\n" +
-                            "Please change your password after first login.",
+                                    "Your account has been created successfully.\n" +
+                                    "Your temporary password is: " + password + "\n\n" +
+                                    "Please change your password after first login.",
                             "Welcome to User Management System!<br><br>" +
-                            "Your account has been created successfully.<br>" +
-                            "Your temporary password is: " + password + "<br><br>" +
-                            "Please change your password after first login."
-                    ));
+                                    "Your account has been created successfully.<br>" +
+                                    "Your temporary password is: " + password + "<br><br>" +
+                                    "Please change your password after first login."));
 
             emailSender.send(welcomeEmailBuilder);
             log.info("Welcome email sent successfully to: {}", email);
@@ -131,8 +130,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .subject("Password Reset Request")
                     .body(new MultipartBody(
                             "A password reset has been requested for user: " + email,
-                            "A password reset has been requested for user: " + email
-                    ));
+                            "A password reset has been requested for user: " + email));
 
             emailSender.send(resetRequestEmailBuilder);
             log.info("Password reset request email sent successfully to admin");
@@ -161,10 +159,9 @@ public class NotificationServiceImpl implements NotificationService {
                     .subject("Password Reset Approved")
                     .body(new MultipartBody(
                             "Your password reset request has been approved.\n" +
-                            "Please use the link below to reset your password.",
+                                    "Please use the link below to reset your password.",
                             "Your password reset request has been approved.<br>" +
-                            "Please use the link below to reset your password."
-                    ));
+                                    "Please use the link below to reset your password."));
 
             emailSender.send(resetApprovalEmailBuilder);
             log.info("Password reset approval email sent successfully to: {}", email);
@@ -193,10 +190,9 @@ public class NotificationServiceImpl implements NotificationService {
                     .subject("Password Changed")
                     .body(new MultipartBody(
                             "Your password has been changed successfully.\n" +
-                            "If you did not make this change, please contact support immediately.",
+                                    "If you did not make this change, please contact support immediately.",
                             "Your password has been changed successfully.<br>" +
-                            "If you did not make this change, please contact support immediately."
-                    ));
+                                    "If you did not make this change, please contact support immediately."));
 
             emailSender.send(passwordChangeEmailBuilder);
             log.info("Password change email sent successfully to: {}", email);
@@ -234,4 +230,4 @@ public class NotificationServiceImpl implements NotificationService {
             log.error("Error in broadcastNotification", e);
         }
     }
-} 
+}

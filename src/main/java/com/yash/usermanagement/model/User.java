@@ -1,6 +1,6 @@
 package com.yash.usermanagement.model;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.data.annotation.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @MappedEntity("users")
-@Introspected
+@Serdeable
 public class User {
 
     @Id
