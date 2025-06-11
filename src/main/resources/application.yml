@@ -11,6 +11,8 @@ micronaut:
         mapping: /swagger-ui/**
   server:
     port: 8080
+    cors:
+      enabled: true
   data:
     jdbc:
       repositories:
@@ -25,6 +27,42 @@ micronaut:
         schema-generate-drop: true
         schema-generate-create-sources: CLASSES
         schema-generate-drop-sources: CLASSES
+  security:
+    enabled: false
+  email:
+    from: noreply@example.com
+    host: smtp.gmail.com
+    username: ${MAIL_USERNAME:vbook.yash@gmail.com}
+    password: ${MAIL_PASSWORD:thke xcps iqru fcfd}
+    transport:
+      protocol: smtp
+      properties:
+        mail:
+          smtp:
+            host: smtp.gmail.com
+            port: 587
+            auth: true
+            starttls:
+              enable: true
+            ssl:
+              trust: smtp.gmail.com
+            user: ${MAIL_USERNAME:vbook.yash@gmail.com}
+            password: ${MAIL_PASSWORD:thke xcps iqru fcfd}
+
+# ✅ Moved JavaMail properties to root level
+javamail:
+  properties:
+    mail:
+      smtp:
+        host: smtp.gmail.com
+        port: 587
+        auth: true
+        starttls:
+          enable: true
+        ssl:
+          trust: smtp.gmail.com
+        username: ${MAIL_USERNAME:vbook.yash@gmail.com}
+        password: ${MAIL_PASSWORD:thke xcps iqru fcfd}
 
 datasources:
   default:
@@ -45,13 +83,28 @@ datasources:
     maxLifetime: 1200000
     validationQuery: "SELECT 1"
     testOnBorrow: true
-    testOnReturn: false
     testWhileIdle: true
     timeBetweenEvictionRunsMillis: 60000
     minEvictableIdleTimeMillis: 300000
     jmxEnabled: true
 
+# DynamoDB Configuration
+dynamodb:
+  endpoint: http://localhost:8000
+
+# AWS Configuration
+aws:
+  region: us-east-1
+  credentials:
+    access-key-id: dummy
+    secret-access-key: dummy
+
+swagger:
+  title: User Management API
+  version: 1.0.0
+  description: API for managing users and their notifications
+
 openapi:
   title: User Management API
   version: 1.0
-  description: API for managing users and their addresses 
+  description: API for managing users and their addresses

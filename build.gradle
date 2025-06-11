@@ -1,11 +1,11 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.micronaut.application") version "4.2.1"
+    id("io.micronaut.application") version "4.3.2"
     id("io.micronaut.aot") version "4.2.1"
 }
 
 version = "0.1"
-group = "com.yash.usermanagement"
+group = "com.yash"
 
 repositories {
     mavenCentral()
@@ -16,6 +16,7 @@ dependencies {
     annotationProcessor("io.micronaut.openapi:micronaut-openapi")
     annotationProcessor("io.micronaut.validation:micronaut-validation-processor")
     annotationProcessor("io.micronaut.data:micronaut-data-processor")
+    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
     
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-jackson-databind")
@@ -33,19 +34,33 @@ dependencies {
     implementation("io.micronaut.data:micronaut-data-runtime")
     implementation("io.micronaut.data:micronaut-data-tx")
     
+    // DynamoDB dependencies
+    implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
+    implementation("io.micronaut.aws:micronaut-aws-parameter-store")
+    implementation("software.amazon.awssdk:dynamodb-enhanced:2.20.162")
+    implementation("software.amazon.awssdk:dynamodb:2.20.162")
+    
+    // Email dependencies
+    implementation("io.micronaut.email:micronaut-email-javamail:1.4.0")
+    implementation("io.micronaut.email:micronaut-email-template:1.4.0")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    implementation("com.sun.mail:jakarta.mail:2.0.1")
+    implementation("jakarta.mail:jakarta.mail-api:2.1.2")
+    
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly('org.postgresql:postgresql:42.7.2')
     
     testImplementation("io.micronaut:micronaut-http-client")
+    implementation 'io.projectreactor:reactor-core:3.5.11'
 }
 
 application {
-    mainClass.set("com.yash.usermanagement.Application")
+    mainClass.set("com.yash.Application")
 }
 
 java {
-    sourceCompatibility = JavaVersion.toVersion("17")
-    targetCompatibility = JavaVersion.toVersion("17")
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 graalvmNative.toolchainDetection = false
@@ -55,7 +70,7 @@ micronaut {
     testRuntime("junit5")
     processing {
         incremental(true)
-        annotations("com.example.*")
+        annotations("com.yash.*")
     }
     aot {
         optimizeServiceLoading = false
