@@ -13,6 +13,7 @@ import com.yash.usermanagement.dto.UpdateUserRequest;
 import com.yash.usermanagement.dto.UserResponse;
 import com.yash.usermanagement.model.User;
 import com.yash.usermanagement.service.UserService;
+import com.yash.usermanagement.service.NotificationService;
 import com.yash.usermanagement.exception.ResourceNotFoundException;
 import com.yash.usermanagement.exception.ValidationException;
 import com.yash.usermanagement.exception.DuplicateResourceException;
@@ -28,9 +29,11 @@ public class UserController {
 
     private static final Logger LOG = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
+    private final NotificationService notificationService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, NotificationService notificationService) {
         this.userService = userService;
+        this.notificationService = notificationService;
     }
 
     @Post
@@ -40,6 +43,13 @@ public class UserController {
         try {
             User user = convertToUser(request);
             User createdUser = userService.createUser(user);
+
+            // Send welcome notification and email
+            notificationService.sendUserCreationNotification(
+                    createdUser.getId(),
+                    createdUser.getEmail(),
+                    request.getPassword());
+
             return HttpResponse.created(convertToUserResponse(createdUser));
         } catch (DuplicateResourceException e) {
             LOG.warn("Duplicate user creation attempted: {}", e.getMessage());

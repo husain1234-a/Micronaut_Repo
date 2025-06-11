@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.micronaut.serde.annotation.Serdeable;
 
 import java.util.List;
 import java.util.UUID;
@@ -126,6 +127,7 @@ public class NotificationController {
     }
 }
 
+@Serdeable
 class TestNotificationRequest {
     private UUID userId;
     private String email;
@@ -157,6 +159,7 @@ class TestNotificationRequest {
     }
 }
 
+@Serdeable
 class BroadcastNotificationRequest {
     private String title;
     private String message;

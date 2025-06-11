@@ -1,6 +1,7 @@
 package com.yash.usermanagement.service.impl;
 
 import com.yash.usermanagement.config.EmailConfig;
+import com.yash.usermanagement.exception.ResourceNotFoundException;
 import com.yash.usermanagement.model.Notification;
 import com.yash.usermanagement.model.NotificationPriority;
 import com.yash.usermanagement.model.User;
@@ -39,6 +40,11 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Notification createNotification(Notification notification) {
+        // Validate user exists
+        User user = userRepository.findById(notification.getUserId())
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("User not found with id: " + notification.getUserId()));
+
         notification.setId(UUID.randomUUID().toString());
         notification.setRead(false);
         notification.setCreatedAt(java.time.LocalDateTime.now());
@@ -59,12 +65,20 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<Notification> getNotificationsByUserId(UUID userId) {
+        // Validate user exists
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
         log.info("Fetching notifications for user: {}", userId);
         return notificationRepository.findByUserId(userId);
     }
 
     @Override
     public List<Notification> getNotificationsByUserIdAndPriority(UUID userId, NotificationPriority priority) {
+        // Validate user exists
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
         log.info("Fetching {} priority notifications for user: {}", priority, userId);
         return notificationRepository.findByUserIdAndPriority(userId, priority);
     }
@@ -79,6 +93,13 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendUserCreationNotification(UUID userId, String email, String password) {
         log.info("Sending user creation notification to: {}", email);
         try {
+            // Validate user exists
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+            // Use email from user object
+            String userEmail = user.getEmail();
+
             Notification notification = new Notification();
             notification.setUserId(userId);
             notification.setTitle("Welcome to User Management System");
@@ -91,7 +112,7 @@ public class NotificationServiceImpl implements NotificationService {
             // Send welcome email
             Email.Builder welcomeEmailBuilder = Email.builder()
                     .from(emailConfig.getFrom())
-                    .to(email)
+                    .to(userEmail)
                     .subject("Welcome to User Management System")
                     .body(new MultipartBody(
                             "Welcome to User Management System!\n\n" +
@@ -104,9 +125,10 @@ public class NotificationServiceImpl implements NotificationService {
                                     "Please change your password after first login."));
 
             emailSender.send(welcomeEmailBuilder);
-            log.info("Welcome email sent successfully to: {}", email);
+            log.info("Welcome email sent successfully to: {}", userEmail);
         } catch (Exception e) {
             log.error("Error in sendUserCreationNotification for user: {}", userId, e);
+            throw e;
         }
     }
 
@@ -114,6 +136,13 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendPasswordResetRequestNotification(UUID userId, String email) {
         log.info("Sending password reset request notification for user: {}", userId);
         try {
+            // Validate user exists
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+            // Use email from user object
+            String userEmail = user.getEmail();
+
             Notification notification = new Notification();
             notification.setUserId(userId);
             notification.setTitle("Password Reset Request");
@@ -129,13 +158,14 @@ public class NotificationServiceImpl implements NotificationService {
                     .to(emailConfig.getFrom())
                     .subject("Password Reset Request")
                     .body(new MultipartBody(
-                            "A password reset has been requested for user: " + email,
-                            "A password reset has been requested for user: " + email));
+                            "A password reset has been requested for user: " + userEmail,
+                            "A password reset has been requested for user: " + userEmail));
 
             emailSender.send(resetRequestEmailBuilder);
             log.info("Password reset request email sent successfully to admin");
         } catch (Exception e) {
             log.error("Error in sendPasswordResetRequestNotification for user: {}", userId, e);
+            throw e;
         }
     }
 
@@ -143,6 +173,13 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendPasswordResetApprovalNotification(UUID userId, String email) {
         log.info("Sending password reset approval notification for user: {}", userId);
         try {
+            // Validate user exists
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+            // Use email from user object
+            String userEmail = user.getEmail();
+
             Notification notification = new Notification();
             notification.setUserId(userId);
             notification.setTitle("Password Reset Approved");
@@ -155,7 +192,7 @@ public class NotificationServiceImpl implements NotificationService {
             // Send password reset approval email
             Email.Builder resetApprovalEmailBuilder = Email.builder()
                     .from(emailConfig.getFrom())
-                    .to(email)
+                    .to(userEmail)
                     .subject("Password Reset Approved")
                     .body(new MultipartBody(
                             "Your password reset request has been approved.\n" +
@@ -164,9 +201,10 @@ public class NotificationServiceImpl implements NotificationService {
                                     "Please use the link below to reset your password."));
 
             emailSender.send(resetApprovalEmailBuilder);
-            log.info("Password reset approval email sent successfully to: {}", email);
+            log.info("Password reset approval email sent successfully to: {}", userEmail);
         } catch (Exception e) {
             log.error("Error in sendPasswordResetApprovalNotification for user: {}", userId, e);
+            throw e;
         }
     }
 
@@ -174,6 +212,13 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendPasswordChangeNotification(UUID userId, String email) {
         log.info("Sending password change notification for user: {}", userId);
         try {
+            // Validate user exists
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+            // Use email from user object
+            String userEmail = user.getEmail();
+
             Notification notification = new Notification();
             notification.setUserId(userId);
             notification.setTitle("Password Changed");
@@ -186,7 +231,7 @@ public class NotificationServiceImpl implements NotificationService {
             // Send password change email
             Email.Builder passwordChangeEmailBuilder = Email.builder()
                     .from(emailConfig.getFrom())
-                    .to(email)
+                    .to(userEmail)
                     .subject("Password Changed")
                     .body(new MultipartBody(
                             "Your password has been changed successfully.\n" +
@@ -195,9 +240,10 @@ public class NotificationServiceImpl implements NotificationService {
                                     "If you did not make this change, please contact support immediately."));
 
             emailSender.send(passwordChangeEmailBuilder);
-            log.info("Password change email sent successfully to: {}", email);
+            log.info("Password change email sent successfully to: {}", userEmail);
         } catch (Exception e) {
             log.error("Error in sendPasswordChangeNotification for user: {}", userId, e);
+            throw e;
         }
     }
 
@@ -228,6 +274,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
         } catch (Exception e) {
             log.error("Error in broadcastNotification", e);
+            throw e;
         }
     }
 }
