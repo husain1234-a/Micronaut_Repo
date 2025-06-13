@@ -27,6 +27,8 @@ public interface UserService {
 
     void changePassword(UUID userId, String newPassword);
 
+    boolean validateCurrentPassword(UUID userId, String currentPassword);
+
     void requestPasswordChange(UUID userId);
 
     void approvePasswordChange(UUID userId);

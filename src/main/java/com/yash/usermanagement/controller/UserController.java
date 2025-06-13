@@ -165,6 +165,11 @@ public class UserController {
         try {
             User user = userService.getUserById(id);
 
+            // Validate current password
+            if (!userService.validateCurrentPassword(id, request.getOldPassword())) {
+                throw new ValidationException("Current password is incorrect");
+            }
+
             // Create password change request
             PasswordChangeRequest passwordChangeRequest = new PasswordChangeRequest();
             passwordChangeRequest.setUserId(id);
@@ -183,6 +188,9 @@ public class UserController {
             return HttpResponse.accepted();
         } catch (ResourceNotFoundException e) {
             LOG.warn("User not found for password change request with id: {}", id);
+            throw e;
+        } catch (ValidationException e) {
+            LOG.warn("Invalid password change request: {}", e.getMessage());
             throw e;
         }
     }

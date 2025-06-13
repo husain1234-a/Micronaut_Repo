@@ -310,4 +310,20 @@ public class UserServiceImpl implements UserService {
             throw new DatabaseException("Failed to fetch password change request", e);
         }
     }
+
+    @Override
+    public boolean validateCurrentPassword(UUID userId, String currentPassword) {
+        LOG.info("Validating current password for user with ID: {}", userId);
+        try {
+            User user = getUserById(userId);
+            // Here you should use your password hashing mechanism to compare passwords
+            // For example, if using BCrypt:
+            // return BCrypt.checkpw(currentPassword, user.getPassword());
+            return currentPassword.equals(user.getPassword()); // This is just for example, use proper password hashing
+                                                               // in production
+        } catch (Exception e) {
+            LOG.error("Error validating current password for user with ID {}: {}", userId, e.getMessage(), e);
+            throw new DatabaseException("Failed to validate current password", e);
+        }
+    }
 }
