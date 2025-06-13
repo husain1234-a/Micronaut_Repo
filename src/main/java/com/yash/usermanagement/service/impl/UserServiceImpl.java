@@ -1,5 +1,7 @@
 package com.yash.usermanagement.service.impl;
 
+import com.yash.usermanagement.model.PasswordChangeRequest;
+import com.yash.usermanagement.model.PasswordChangeStatus;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -7,12 +9,16 @@ import org.slf4j.LoggerFactory;
 
 import com.yash.usermanagement.exception.DatabaseException;
 import com.yash.usermanagement.exception.ResourceNotFoundException;
+import com.yash.usermanagement.exception.ValidationException;
 import com.yash.usermanagement.model.Address;
 import com.yash.usermanagement.model.User;
+import com.yash.usermanagement.model.UserRole;
 import com.yash.usermanagement.repository.AddressRepository;
 import com.yash.usermanagement.repository.UserRepository;
+import com.yash.usermanagement.repository.PasswordChangeRequestRepository;
 import com.yash.usermanagement.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,10 +29,13 @@ public class UserServiceImpl implements UserService {
     private static final Logger LOG = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final PasswordChangeRequestRepository passwordChangeRequestRepository;
 
-    public UserServiceImpl(UserRepository userRepository, AddressRepository addressRepository) {
+    public UserServiceImpl(UserRepository userRepository, AddressRepository addressRepository,
+            PasswordChangeRequestRepository passwordChangeRequestRepository) {
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
+        this.passwordChangeRequestRepository = passwordChangeRequestRepository;
     }
 
     @Override
@@ -250,6 +259,55 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             LOG.error("Error approving password change for user with ID {}: {}", userId, e.getMessage(), e);
             throw new DatabaseException("Failed to approve password change", e);
+        }
+    }
+
+    @Override
+    public void rejectPasswordChange(UUID userId, UUID adminId) {
+        LOG.info("Rejecting password change request for user: {}", userId);
+        try {
+            User user = getUserById(userId);
+            User admin = getUserById(adminId);
+
+            if (admin.getRole() != UserRole.ADMIN) {
+                throw new ValidationException("Only admin can reject password changes");
+            }
+
+            PasswordChangeRequest request = passwordChangeRequestRepository
+                    .findByUserIdAndStatus(userId, PasswordChangeStatus.PENDING)
+                    .orElseThrow(() -> new ResourceNotFoundException("No pending password change request found"));
+
+            request.setStatus(PasswordChangeStatus.REJECTED);
+            request.setAdminId(adminId);
+            request.setUpdatedAt(LocalDateTime.now());
+            passwordChangeRequestRepository.update(request);
+
+            LOG.info("Password change request rejected for user: {}", userId);
+        } catch (Exception e) {
+            LOG.error("Error rejecting password change request: {}", e.getMessage());
+            throw new DatabaseException("Failed to reject password change request", e);
+        }
+    }
+
+    @Override
+    public List<PasswordChangeRequest> getPendingPasswordChangeRequests() {
+        LOG.info("Fetching all pending password change requests");
+        try {
+            return passwordChangeRequestRepository.findByStatus(PasswordChangeStatus.PENDING);
+        } catch (Exception e) {
+            LOG.error("Error fetching pending password change requests: {}", e.getMessage());
+            throw new DatabaseException("Failed to fetch pending password change requests", e);
+        }
+    }
+
+    @Override
+    public Optional<PasswordChangeRequest> getPasswordChangeRequestByUserId(UUID userId) {
+        LOG.info("Fetching password change request for user: {}", userId);
+        try {
+            return passwordChangeRequestRepository.findByUserIdAndStatus(userId, PasswordChangeStatus.PENDING);
+        } catch (Exception e) {
+            LOG.error("Error fetching password change request: {}", e.getMessage());
+            throw new DatabaseException("Failed to fetch password change request", e);
         }
     }
 }

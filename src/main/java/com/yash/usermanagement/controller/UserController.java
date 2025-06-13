@@ -11,13 +11,20 @@ import org.slf4j.LoggerFactory;
 import com.yash.usermanagement.dto.CreateUserRequest;
 import com.yash.usermanagement.dto.UpdateUserRequest;
 import com.yash.usermanagement.dto.UserResponse;
+import com.yash.usermanagement.dto.PasswordChangeRequestDTO;
+import com.yash.usermanagement.dto.PasswordChangeApprovalDTO;
 import com.yash.usermanagement.model.User;
 import com.yash.usermanagement.service.UserService;
 import com.yash.usermanagement.service.NotificationService;
 import com.yash.usermanagement.exception.ResourceNotFoundException;
 import com.yash.usermanagement.exception.ValidationException;
 import com.yash.usermanagement.exception.DuplicateResourceException;
+import com.yash.usermanagement.model.PasswordChangeRequest;
+import com.yash.usermanagement.model.PasswordChangeStatus;
+import com.yash.usermanagement.model.UserRole;
+import com.yash.usermanagement.repository.PasswordChangeRequestRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,10 +37,13 @@ public class UserController {
     private static final Logger LOG = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
     private final NotificationService notificationService;
+    private final PasswordChangeRequestRepository passwordChangeRequestRepository;
 
-    public UserController(UserService userService, NotificationService notificationService) {
+    public UserController(UserService userService, NotificationService notificationService,
+            PasswordChangeRequestRepository passwordChangeRequestRepository) {
         this.userService = userService;
         this.notificationService = notificationService;
+        this.passwordChangeRequestRepository = passwordChangeRequestRepository;
     }
 
     @Post
@@ -91,6 +101,14 @@ public class UserController {
         try {
             User user = convertToUser(request);
             User updatedUser = userService.updateUser(id, user);
+
+            // Send update notification
+            try {
+                notificationService.sendPasswordChangeNotification(updatedUser.getId(), updatedUser.getEmail());
+            } catch (Exception e) {
+                LOG.error("Failed to send update notification email: {}", e.getMessage());
+            }
+
             return HttpResponse.ok(convertToUserResponse(updatedUser));
         } catch (ResourceNotFoundException e) {
             LOG.warn("User not found for update with id: {}", id);
@@ -106,7 +124,16 @@ public class UserController {
     public HttpResponse<Void> deleteUser(@PathVariable UUID id) {
         LOG.info("Deleting user with id: {}", id);
         try {
+            User user = userService.getUserById(id); // Get user before deletion
             userService.deleteUser(id);
+
+            // Send deletion notification
+            try {
+                notificationService.sendPasswordChangeNotification(user.getId(), user.getEmail());
+            } catch (Exception e) {
+                LOG.error("Failed to send deletion notification email: {}", e.getMessage());
+            }
+
             return HttpResponse.noContent();
         } catch (ResourceNotFoundException e) {
             LOG.warn("User not found for deletion with id: {}", id);
@@ -131,10 +158,28 @@ public class UserController {
 
     @Post("/{id}/change-password")
     @Operation(summary = "Request password change")
-    public HttpResponse<Void> requestPasswordChange(@PathVariable UUID id) {
+    public HttpResponse<Void> requestPasswordChange(
+            @PathVariable UUID id,
+            @Body @Valid PasswordChangeRequestDTO request) {
         LOG.info("Requesting password change for user with id: {}", id);
         try {
-            userService.requestPasswordChange(id);
+            User user = userService.getUserById(id);
+
+            // Create password change request
+            PasswordChangeRequest passwordChangeRequest = new PasswordChangeRequest();
+            passwordChangeRequest.setUserId(id);
+            passwordChangeRequest.setNewPassword(request.getNewPassword());
+            passwordChangeRequest.setStatus(PasswordChangeStatus.PENDING);
+            passwordChangeRequest.setCreatedAt(LocalDateTime.now());
+            passwordChangeRequestRepository.save(passwordChangeRequest);
+
+            // Send notification to admin
+            try {
+                notificationService.sendPasswordResetRequestNotification(user.getId(), user.getEmail());
+            } catch (Exception e) {
+                LOG.error("Failed to send password reset request email: {}", e.getMessage());
+            }
+
             return HttpResponse.accepted();
         } catch (ResourceNotFoundException e) {
             LOG.warn("User not found for password change request with id: {}", id);
@@ -144,10 +189,57 @@ public class UserController {
 
     @Put("/{id}/approve-password-change")
     @Operation(summary = "Approve password change request")
-    public HttpResponse<Void> approvePasswordChange(@PathVariable UUID id) {
-        LOG.info("Approving password change for user with id: {}", id);
+    public HttpResponse<Void> approvePasswordChange(
+            @PathVariable UUID id,
+            @Body @Valid PasswordChangeApprovalDTO request) {
+        LOG.info("Processing password change approval for user with id: {}", id);
         try {
-            userService.approvePasswordChange(id);
+            // Verify admin
+            User admin = userService.getUserById(request.getAdminId());
+            if (admin.getRole() != UserRole.ADMIN) {
+                throw new ValidationException("Only admin can approve password changes");
+            }
+
+            // Get user and password change request
+            User user = userService.getUserById(id);
+            PasswordChangeRequest passwordChangeRequest = passwordChangeRequestRepository
+                    .findByUserIdAndStatus(id, PasswordChangeStatus.PENDING)
+                    .orElseThrow(() -> new ResourceNotFoundException("No pending password change request found"));
+
+            if (request.isApproved()) {
+                // Update password
+                userService.changePassword(id, passwordChangeRequest.getNewPassword());
+
+                // Update request status and admin ID
+                passwordChangeRequest.setStatus(PasswordChangeStatus.APPROVED);
+                passwordChangeRequest.setAdminId(request.getAdminId());
+                passwordChangeRequest.setUpdatedAt(LocalDateTime.now());
+                passwordChangeRequestRepository.update(passwordChangeRequest);
+
+                // Send approval notification
+                try {
+                    notificationService.sendPasswordResetApprovalNotification(user.getId(), user.getEmail());
+                } catch (Exception e) {
+                    LOG.error("Failed to send password reset approval email: {}", e.getMessage());
+                }
+            } else {
+                // Reject password change
+                userService.rejectPasswordChange(id, request.getAdminId());
+
+                // Update request status and admin ID
+                passwordChangeRequest.setStatus(PasswordChangeStatus.REJECTED);
+                passwordChangeRequest.setAdminId(request.getAdminId());
+                passwordChangeRequest.setUpdatedAt(LocalDateTime.now());
+                passwordChangeRequestRepository.update(passwordChangeRequest);
+
+                // Send rejection notification
+                try {
+                    notificationService.sendPasswordChangeRejectionNotification(user.getId(), user.getEmail());
+                } catch (Exception e) {
+                    LOG.error("Failed to send password change rejection email: {}", e.getMessage());
+                }
+            }
+
             return HttpResponse.ok();
         } catch (ResourceNotFoundException e) {
             LOG.warn("User not found for password change approval with id: {}", id);

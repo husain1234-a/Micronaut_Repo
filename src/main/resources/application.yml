@@ -6,7 +6,7 @@ micronaut:
       email: en20cs301184@medicaps.ac.in
       name: Ishita Porwal
   sendgrid:
-    api-key: ${SENDGRID_API_KEY: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}
+    api-key: ${SENDGRID_API_KEY:}
     from-email: ${SENDGRID_FROM_EMAIL:micronaut.yash@gmail.com}
   notifications:
     admin-email: admin@yash.com

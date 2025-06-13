@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.yash.usermanagement.model.User;
+import com.yash.usermanagement.model.PasswordChangeRequest;
+import com.yash.usermanagement.model.PasswordChangeStatus;
 
 public interface UserService {
     User createUser(User user);
@@ -28,4 +30,10 @@ public interface UserService {
     void requestPasswordChange(UUID userId);
 
     void approvePasswordChange(UUID userId);
+
+    void rejectPasswordChange(UUID userId, UUID adminId);
+
+    List<PasswordChangeRequest> getPendingPasswordChangeRequests();
+
+    Optional<PasswordChangeRequest> getPasswordChangeRequestByUserId(UUID userId);
 }
