@@ -43,10 +43,8 @@ dependencies {
     implementation("software.amazon.awssdk:dynamodb:2.20.162")
     
     // Email dependencies
-    implementation("io.micronaut.email:micronaut-email-javamail:1.4.0")
     implementation("io.micronaut.email:micronaut-email-template:1.4.0")
-    implementation("com.sun.mail:jakarta.mail:2.0.1")
-    implementation("jakarta.mail:jakarta.mail-api:2.1.2")
+    implementation("com.sendgrid:sendgrid-java:4.9.0")
     
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly('org.postgresql:postgresql:42.7.2')

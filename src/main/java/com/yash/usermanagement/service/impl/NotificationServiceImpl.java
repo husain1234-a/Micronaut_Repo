@@ -1,6 +1,5 @@
 package com.yash.usermanagement.service.impl;
 
-import com.yash.usermanagement.config.EmailConfig;
 import com.yash.usermanagement.exception.ResourceNotFoundException;
 import com.yash.usermanagement.model.Notification;
 import com.yash.usermanagement.model.NotificationPriority;
@@ -8,43 +7,38 @@ import com.yash.usermanagement.model.User;
 import com.yash.usermanagement.repository.NotificationRepository;
 import com.yash.usermanagement.repository.UserRepository;
 import com.yash.usermanagement.service.NotificationService;
-import io.micronaut.email.Email;
-import io.micronaut.email.EmailSender;
-import io.micronaut.email.MultipartBody;
 import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Singleton
 public class NotificationServiceImpl implements NotificationService {
+
     private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
+    private static final String ADMIN_EMAIL = "en20cs301184@medicaps.ac.in";
+    private static final String RESET_PASSWORD_URL = "http://localhost/reset-password";
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-    private final EmailSender<?, ?> emailSender;
-    private final EmailConfig emailConfig;
+    private final SendGridEmailService sendGridEmailService;
 
-    public NotificationServiceImpl(NotificationRepository notificationRepository,
+    public NotificationServiceImpl(
+            NotificationRepository notificationRepository,
             UserRepository userRepository,
-            EmailSender<?, ?> emailSender,
-            EmailConfig emailConfig) {
+            SendGridEmailService sendGridEmailService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
-        this.emailSender = emailSender;
-        this.emailConfig = emailConfig;
+        this.sendGridEmailService = sendGridEmailService;
     }
 
     @Override
     public Notification createNotification(Notification notification) {
         // Validate user exists
         User user = userRepository.findById(notification.getUserId())
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("User not found with id: " + notification.getUserId()));
-
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + notification.getUserId()));
         notification.setId(UUID.randomUUID().toString());
         notification.setRead(false);
         notification.setCreatedAt(java.time.LocalDateTime.now());
@@ -65,20 +59,16 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<Notification> getNotificationsByUserId(UUID userId) {
-        // Validate user exists
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-
         log.info("Fetching notifications for user: {}", userId);
         return notificationRepository.findByUserId(userId);
     }
 
     @Override
     public List<Notification> getNotificationsByUserIdAndPriority(UUID userId, NotificationPriority priority) {
-        // Validate user exists
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-
         log.info("Fetching {} priority notifications for user: {}", priority, userId);
         return notificationRepository.findByUserIdAndPriority(userId, priority);
     }
@@ -93,12 +83,8 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendUserCreationNotification(UUID userId, String email, String password) {
         log.info("Sending user creation notification to: {}", email);
         try {
-            // Validate user exists
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-
-            // Use email from user object
-            String userEmail = user.getEmail();
 
             Notification notification = new Notification();
             notification.setUserId(userId);
@@ -109,23 +95,27 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setCreatedAt(java.time.LocalDateTime.now());
             notificationRepository.save(notification);
 
-            // Send welcome email
-            Email.Builder welcomeEmailBuilder = Email.builder()
-                    .from(emailConfig.getFrom())
-                    .to(userEmail)
-                    .subject("Welcome to User Management System")
-                    .body(new MultipartBody(
-                            "Welcome to User Management System!\n\n" +
-                                    "Your account has been created successfully.\n" +
-                                    "Your temporary password is: " + password + "\n\n" +
-                                    "Please change your password after first login.",
-                            "Welcome to User Management System!<br><br>" +
-                                    "Your account has been created successfully.<br>" +
-                                    "Your temporary password is: " + password + "<br><br>" +
-                                    "Please change your password after first login."));
+            String plainTextBody = "Welcome to User Management System!\n\n" +
+                    "Your account has been created successfully.\n" +
+                    "Your temporary password is: " + password + "\n\n" +
+                    "Please change your password after first login.";
 
-            emailSender.send(welcomeEmailBuilder);
-            log.info("Welcome email sent successfully to: {}", userEmail);
+            String htmlBody = "<h2>Welcome to User Management System</h2><br>" +
+                    "<p>Your account has been created successfully.</p>" +
+                    "<p>Your temporary password is: <strong>" + password + "</strong></p>" +
+                    "<p>Please change your password after first login.</p>";
+
+            boolean emailSent = sendGridEmailService.sendEmail(
+                    user.getEmail(),
+                    "Welcome to User Management System",
+                    plainTextBody,
+                    htmlBody
+            );
+
+            if (!emailSent) {
+                log.warn("Failed to send welcome email to user: {}", user.getEmail());
+            }
+
         } catch (Exception e) {
             log.error("Error in sendUserCreationNotification for user: {}", userId, e);
             throw e;
@@ -136,12 +126,8 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendPasswordResetRequestNotification(UUID userId, String email) {
         log.info("Sending password reset request notification for user: {}", userId);
         try {
-            // Validate user exists
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-
-            // Use email from user object
-            String userEmail = user.getEmail();
 
             Notification notification = new Notification();
             notification.setUserId(userId);
@@ -152,20 +138,34 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setCreatedAt(java.time.LocalDateTime.now());
             notificationRepository.save(notification);
 
-            // Send password reset request email to admin
-            Email.Builder resetRequestEmailBuilder = Email.builder()
-                    .from(emailConfig.getFrom())
-                    .to(emailConfig.getFrom())
-                    .subject("Password Reset Request")
-                    .body(new MultipartBody(
-                            "A password reset has been requested for user: " + userEmail,
-                            "A password reset has been requested for user: " + userEmail));
+            String plainTextBody = String.format(
+                "A password reset has been requested for user: %s\n" +
+                "Please review and take appropriate action.",
+                user.getEmail()
+            );
+            
+            String htmlBody = String.format(
+                "<h2>Password Reset Request</h2>" +
+                "<p>A password reset has been requested for user: <strong>%s</strong></p>" +
+                "<p>Please review and take appropriate action.</p>",
+                user.getEmail()
+            );
 
-            emailSender.send(resetRequestEmailBuilder);
-            log.info("Password reset request email sent successfully to admin");
+            boolean emailSent = sendGridEmailService.sendEmail(
+                    ADMIN_EMAIL,
+                    "Password Reset Request",
+                    plainTextBody,
+                    htmlBody
+            );
+
+            if (!emailSent) {
+                log.error("Failed to send password reset request email to admin: {}", ADMIN_EMAIL);
+                throw new RuntimeException("Failed to send password reset request email");
+            }
+
         } catch (Exception e) {
             log.error("Error in sendPasswordResetRequestNotification for user: {}", userId, e);
-            throw e;
+            throw new RuntimeException("Failed to process password reset request notification", e);
         }
     }
 
@@ -173,12 +173,8 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendPasswordResetApprovalNotification(UUID userId, String email) {
         log.info("Sending password reset approval notification for user: {}", userId);
         try {
-            // Validate user exists
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-
-            // Use email from user object
-            String userEmail = user.getEmail();
 
             Notification notification = new Notification();
             notification.setUserId(userId);
@@ -189,22 +185,37 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setCreatedAt(java.time.LocalDateTime.now());
             notificationRepository.save(notification);
 
-            // Send password reset approval email
-            Email.Builder resetApprovalEmailBuilder = Email.builder()
-                    .from(emailConfig.getFrom())
-                    .to(userEmail)
-                    .subject("Password Reset Approved")
-                    .body(new MultipartBody(
-                            "Your password reset request has been approved.\n" +
-                                    "Please use the link below to reset your password.",
-                            "Your password reset request has been approved.<br>" +
-                                    "Please use the link below to reset your password."));
+            String resetUrl = RESET_PASSWORD_URL + "?token=" + UUID.randomUUID().toString();
+            
+            String plainTextBody = String.format(
+                "Your password reset request has been approved.\n" +
+                "Please use the link below to reset your password:\n%s",
+                resetUrl
+            );
+            
+            String htmlBody = String.format(
+                "<h2>Password Reset Approved</h2>" +
+                "<p>Your password reset request has been approved.</p>" +
+                "<p>Please use the link below to reset your password:</p>" +
+                "<p><a href='%s'>Reset Password</a></p>",
+                resetUrl
+            );
 
-            emailSender.send(resetApprovalEmailBuilder);
-            log.info("Password reset approval email sent successfully to: {}", userEmail);
+            boolean emailSent = sendGridEmailService.sendEmail(
+                    user.getEmail(),
+                    "Password Reset Approved",
+                    plainTextBody,
+                    htmlBody
+            );
+
+            if (!emailSent) {
+                log.error("Failed to send password reset approval email to user: {}", user.getEmail());
+                throw new RuntimeException("Failed to send password reset approval email");
+            }
+
         } catch (Exception e) {
             log.error("Error in sendPasswordResetApprovalNotification for user: {}", userId, e);
-            throw e;
+            throw new RuntimeException("Failed to process password reset approval notification", e);
         }
     }
 
@@ -212,12 +223,8 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendPasswordChangeNotification(UUID userId, String email) {
         log.info("Sending password change notification for user: {}", userId);
         try {
-            // Validate user exists
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-
-            // Use email from user object
-            String userEmail = user.getEmail();
 
             Notification notification = new Notification();
             notification.setUserId(userId);
@@ -228,19 +235,22 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setCreatedAt(java.time.LocalDateTime.now());
             notificationRepository.save(notification);
 
-            // Send password change email
-            Email.Builder passwordChangeEmailBuilder = Email.builder()
-                    .from(emailConfig.getFrom())
-                    .to(userEmail)
-                    .subject("Password Changed")
-                    .body(new MultipartBody(
-                            "Your password has been changed successfully.\n" +
-                                    "If you did not make this change, please contact support immediately.",
-                            "Your password has been changed successfully.<br>" +
-                                    "If you did not make this change, please contact support immediately."));
+            String plainTextBody = "Your password has been changed successfully.\n" +
+                    "If you did not make this change, please contact support immediately.";
+            String htmlBody = "Your password has been changed successfully.<br>" +
+                    "If you did not make this change, please contact support immediately.";
 
-            emailSender.send(passwordChangeEmailBuilder);
-            log.info("Password change email sent successfully to: {}", userEmail);
+            boolean emailSent = sendGridEmailService.sendEmail(
+                    user.getEmail(),
+                    "Password Changed",
+                    plainTextBody,
+                    htmlBody
+            );
+
+            if (!emailSent) {
+                log.warn("Failed to send password change email to user: {}", user.getEmail());
+            }
+
         } catch (Exception e) {
             log.error("Error in sendPasswordChangeNotification for user: {}", userId, e);
             throw e;
@@ -252,6 +262,7 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Broadcasting notification: {}", title);
         try {
             List<User> users = userRepository.findAll();
+
             for (User user : users) {
                 Notification notification = new Notification();
                 notification.setUserId(user.getId());
@@ -262,19 +273,20 @@ public class NotificationServiceImpl implements NotificationService {
                 notification.setCreatedAt(java.time.LocalDateTime.now());
                 notificationRepository.save(notification);
 
-                // Send broadcast email
-                Email.Builder broadcastEmailBuilder = Email.builder()
-                        .from(emailConfig.getFrom())
-                        .to(user.getEmail())
-                        .subject(title)
-                        .body(new MultipartBody(message, message));
+                boolean emailSent = sendGridEmailService.sendEmail(
+                        user.getEmail(),
+                        title,
+                        message,
+                        "<h2>" + title + "</h2><br><p>" + message + "</p>"
+                );
 
-                emailSender.send(broadcastEmailBuilder);
-                log.info("Broadcast email sent successfully to: {}", user.getEmail());
+                if (!emailSent) {
+                    log.warn("Failed to send broadcast email to user: {}", user.getEmail());
+                }
             }
         } catch (Exception e) {
             log.error("Error in broadcastNotification", e);
-            throw e;
+            throw new RuntimeException("Failed to broadcast notification", e);
         }
     }
 }
