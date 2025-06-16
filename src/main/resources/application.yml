@@ -39,7 +39,39 @@ micronaut:
         schema-generate-create-sources: CLASSES
         schema-generate-drop-sources: CLASSES
   security:
-    enabled: false
+    enabled: true
+    token:
+      jwt:
+        enabled: true
+        signatures:
+          secret:
+            generator:
+              secret: "your-secret-key-here-make-it-long-and-secure-in-production"
+    authentication: bearer
+    intercept-url-map:
+      - pattern: /api/auth/login
+        access:
+          - isAnonymous()
+      - pattern: /api/auth/logout
+        access:
+          - isAuthenticated()
+      - pattern: /api/**
+        access:
+          - isAuthenticated()
+      - pattern: /swagger/**
+        access:
+          - isAnonymous()
+      - pattern: /swagger-ui/**
+        access:
+          - isAnonymous()
+      - pattern: /v3/api-docs/**
+        access:
+          - isAnonymous()
+    endpoints:
+      login:
+        enabled: false
+      logout:
+        enabled: false
 
 datasources:
   default:

@@ -17,6 +17,7 @@ dependencies {
     annotationProcessor("io.micronaut.validation:micronaut-validation-processor")
     annotationProcessor("io.micronaut.data:micronaut-data-processor")
     annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
+    annotationProcessor("io.micronaut.security:micronaut-security-annotations")
     
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-runtime")
@@ -34,7 +35,11 @@ dependencies {
     implementation("io.micronaut.data:micronaut-data-tx")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("io.micronaut.serde:micronaut-serde-api")
-    // implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
+    
+    // Security dependencies
+    implementation("io.micronaut.security:micronaut-security")
+    implementation("io.micronaut.security:micronaut-security-jwt")
+    implementation("io.micronaut.security:micronaut-security-session")
     
     // DynamoDB dependencies
     implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
