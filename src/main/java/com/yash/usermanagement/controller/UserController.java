@@ -126,6 +126,7 @@ public class UserController {
 
     @Delete("/{id}")
     @Operation(summary = "Delete user")
+    @Secured({ "ADMIN", "USER" })
     public HttpResponse<Void> deleteUser(@PathVariable UUID id) {
         LOG.info("Deleting user with id: {}", id);
         try {
@@ -148,6 +149,7 @@ public class UserController {
 
     @Get("/email/{email}")
     @Operation(summary = "Get user by email")
+    @Secured({ "ADMIN", "USER" })
     public HttpResponse<UserResponse> getUserByEmail(@PathVariable String email) {
         LOG.info("Finding user by email: {}", email);
         try {
@@ -163,7 +165,7 @@ public class UserController {
 
     @Post("/{id}/change-password")
     @Operation(summary = "Request password change")
-    @Secured({ "ADMIN", "USER" })
+    @Secured("USER")
     public HttpResponse<Void> requestPasswordChange(
             @PathVariable UUID id,
             @Body @Valid PasswordChangeRequestDTO request) {
@@ -203,6 +205,7 @@ public class UserController {
 
     @Put("/{id}/approve-password-change")
     @Operation(summary = "Approve password change request")
+    @Secured("ADMIN")
     public HttpResponse<Void> approvePasswordChange(
             @PathVariable UUID id,
             @Body @Valid PasswordChangeApprovalDTO request) {
