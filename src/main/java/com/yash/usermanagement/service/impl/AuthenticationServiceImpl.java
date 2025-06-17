@@ -62,6 +62,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             claims.put("userId", user.getId().toString());
             claims.put("email", user.getEmail());
             claims.put("roles", user.getRole().toString());
+            claims.put("firstname",user.getFirstName());
+            claims.put("lastname",user.getLastName());
             // claims.put("iat", System.currentTimeMillis() / 1000);
             // claims.put("exp", (System.currentTimeMillis() / 1000) + 3600);
             LOG.info("Generated token claims: {}", claims);
