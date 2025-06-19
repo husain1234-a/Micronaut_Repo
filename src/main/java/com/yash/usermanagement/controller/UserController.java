@@ -102,44 +102,12 @@ public class UserController {
     @Operation(summary = "Update user")
     @Secured({ "ADMIN", "USER" })
     public HttpResponse<UserResponse> updateUser(@PathVariable UUID id, @Body @Valid UpdateUserRequest request) {
-        LOG.info("Updating user with id: {}", id);
         try {
-            // Get existing user to check if password is changing
-            User existingUser = userService.getUserById(id);
-            boolean passwordChanged = false;
-
-            // Check if password is being updated and if it's different from current
-            // password
-            if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
-                if (!userService.validateCurrentPassword(id, request.getPassword())) {
-                    passwordChanged = true;
-                    LOG.info("Password is being changed for user with id: {}", id);
-                } else {
-                    LOG.info("Password is the same as current password for user with id: {}", id);
-                }
-            }
-
             User user = convertToUser(request);
             User updatedUser = userService.updateUser(id, user);
-
-            // Send update notification only if password actually changed
-            if (passwordChanged) {
-                try {
-                    notificationService.sendPasswordChangeNotification(updatedUser.getId(), updatedUser.getEmail());
-                    LOG.info("Password change notification sent for user with id: {}", id);
-                } catch (Exception e) {
-                    LOG.error("Failed to send password change notification email: {}", e.getMessage());
-                }
-            } else {
-                LOG.info("No password change detected, skipping notification for user with id: {}", id);
-            }
-
             return HttpResponse.ok(convertToUserResponse(updatedUser));
-        } catch (ResourceNotFoundException e) {
-            LOG.warn("User not found for update with id: {}", id);
-            throw e;
-        } catch (ValidationException e) {
-            LOG.warn("Invalid user data for update: {}", e.getMessage());
+        } catch (Exception e) {
+            LOG.error("Error updating user: {}", e.getMessage());
             throw e;
         }
     }
@@ -304,9 +272,8 @@ public class UserController {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword());
-        user.setDateOfBirth(request.getDateOfBirth());
         user.setPhoneNumber(request.getPhoneNumber());
+        user.setDateOfBirth(request.getDateOfBirth());
         user.setGender(request.getGender());
         user.setRole(request.getRole());
         user.setAddress(request.getAddress());
