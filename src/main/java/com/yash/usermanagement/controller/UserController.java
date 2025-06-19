@@ -107,8 +107,9 @@ public class UserController {
             // Get existing user to check if password is changing
             User existingUser = userService.getUserById(id);
             boolean passwordChanged = false;
-            
-            // Check if password is being updated and if it's different from current password
+
+            // Check if password is being updated and if it's different from current
+            // password
             if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
                 if (!userService.validateCurrentPassword(id, request.getPassword())) {
                     passwordChanged = true;
@@ -117,7 +118,7 @@ public class UserController {
                     LOG.info("Password is the same as current password for user with id: {}", id);
                 }
             }
-            
+
             User user = convertToUser(request);
             User updatedUser = userService.updateUser(id, user);
 
