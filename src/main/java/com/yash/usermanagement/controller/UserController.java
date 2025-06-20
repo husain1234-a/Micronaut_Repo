@@ -1,6 +1,7 @@
 package com.yash.usermanagement.controller;
 
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.*;
 import io.micronaut.security.annotation.Secured;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,9 +27,7 @@ import com.yash.usermanagement.model.UserRole;
 import com.yash.usermanagement.repository.PasswordChangeRequestRepository;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller("/api/users")
@@ -115,20 +114,20 @@ public class UserController {
     @Delete("/{id}")
     @Operation(summary = "Delete user")
     @Secured({ "ADMIN", "USER" })
-    public HttpResponse<Void> deleteUser(@PathVariable UUID id) {
+    public MutableHttpResponse<Map<String, Boolean>> deleteUser(@PathVariable UUID id) {
         LOG.info("Deleting user with id: {}", id);
         try {
             User user = userService.getUserById(id); // Get user before deletion
-            userService.deleteUser(id);
 
             // Send deletion notification
             try {
-                notificationService.sendPasswordChangeNotification(user.getId(), user.getEmail());
+                notificationService.sendAccountDeletionNotification(user.getId(), user.getEmail());
             } catch (Exception e) {
                 LOG.error("Failed to send deletion notification email: {}", e.getMessage());
             }
+            userService.deleteUser(id);
 
-            return HttpResponse.noContent();
+            return HttpResponse.ok(Collections.singletonMap("success", true));
         } catch (ResourceNotFoundException e) {
             LOG.warn("User not found for deletion with id: {}", id);
             throw e;
