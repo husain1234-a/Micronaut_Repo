@@ -32,4 +32,6 @@ public interface NotificationService {
     void broadcastNotification(String title, String message, NotificationPriority priority);
 
     void sendAccountDeletionNotification(UUID userId, String email);
+    
+    void markNotificationAsRead(String id);
 }

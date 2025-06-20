@@ -64,6 +64,14 @@ public class NotificationController {
         return HttpResponse.ok(notificationService.getNotificationsByUserIdAndPriority(userId, priority));
     }
 
+    @Patch("/{id}/read")
+    @Operation(summary = "Mark notification as read")
+    public HttpResponse<Void> markNotificationAsRead(@PathVariable String id) {
+        LOG.info("Marking notification as read: {}", id);
+        notificationService.markNotificationAsRead(id);
+        return HttpResponse.noContent();
+    }
+
     @Delete("/{id}")
     @Operation(summary = "Delete notification")
     public HttpResponse<Void> deleteNotification(@PathVariable String id) {

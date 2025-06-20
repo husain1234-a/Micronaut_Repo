@@ -143,6 +143,21 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setCreatedAt(java.time.LocalDateTime.now());
             notificationRepository.save(notification);
 
+            // Also notify all admins in the system
+            List<User> admins = userRepository.findAll();
+            for (User admin : admins) {
+                if (admin.getRole() == com.yash.usermanagement.model.UserRole.ADMIN) {
+                    Notification adminNotification = new Notification();
+                    adminNotification.setUserId(admin.getId());
+                    adminNotification.setTitle("New Password Change Request");
+                    adminNotification.setMessage("A new password change request has been submitted by user: " + user.getFirstName() + " " + user.getLastName() + " (" + user.getEmail() + ")");
+                    adminNotification.setPriority(NotificationPriority.HIGH);
+                    adminNotification.setRead(false);
+                    adminNotification.setCreatedAt(java.time.LocalDateTime.now());
+                    notificationRepository.save(adminNotification);
+                }
+            }
+
             // Send email to user
             String subject = "Password Reset Request";
             String textContent = "A password reset has been requested for your account.\n" +
@@ -359,5 +374,13 @@ public class NotificationServiceImpl implements NotificationService {
             log.error("Error in sendAccountDeletionNotification for user: {}", userId, e);
             throw new RuntimeException("Failed to send account deletion notification", e);
         }
+    }
+
+    @Override
+    public void markNotificationAsRead(String id) {
+        Notification notification = notificationRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id: " + id));
+        notification.setRead(true);
+        notificationRepository.save(notification);
     }
 }
