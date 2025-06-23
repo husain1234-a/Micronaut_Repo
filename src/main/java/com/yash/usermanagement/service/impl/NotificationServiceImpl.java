@@ -21,7 +21,7 @@ import com.yash.usermanagement.service.GeminiService;
 public class NotificationServiceImpl implements NotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
-    private static final String ADMIN_EMAIL = "en20cs301184@medicaps.ac.in";
+    // private static final String ADMIN_EMAIL = "en20cs301184@medicaps.ac.in";
     private static final String RESET_PASSWORD_URL = "http://localhost/reset-password";
 
     private final NotificationRepository notificationRepository;
@@ -147,7 +147,7 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setCreatedAt(java.time.LocalDateTime.now());
             notificationRepository.save(notification);
 
-            // Also notify all admins in the system
+            // Send email to all admins in the system
             List<User> admins = userRepository.findAll();
             for (User admin : admins) {
                 if (admin.getRole() == com.yash.usermanagement.model.UserRole.ADMIN) {
@@ -177,7 +177,7 @@ public class NotificationServiceImpl implements NotificationService {
                     textContent,
                     htmlContent);
 
-            // Send email to admin
+            // Send email to all admins in the system
             String adminSubject = "New Password Change Request";
             String adminTextContent = "A new password change request has been submitted by user:\n" +
                     "User ID: " + userId + "\n" +
@@ -191,11 +191,15 @@ public class NotificationServiceImpl implements NotificationService {
                     "<p><strong>User Email:</strong> " + user.getEmail() + "</p><br>" +
                     "<p>Please review and take appropriate action.</p>";
 
-            sendGridEmailService.sendEmail(
-                    ADMIN_EMAIL,
-                    adminSubject,
-                    adminTextContent,
-                    adminHtmlContent);
+            for (User admin : admins) {
+                if (admin.getRole() == com.yash.usermanagement.model.UserRole.ADMIN) {
+                    sendGridEmailService.sendEmail(
+                            admin.getEmail(),
+                            adminSubject,
+                            adminTextContent,
+                            adminHtmlContent);
+                }
+            }
 
             log.info("Password reset request emails sent successfully to user: {} and admin", user.getEmail());
         } catch (Exception e) {
@@ -279,13 +283,14 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     // @Override
-    // public void broadcastNotification(String title, String message, NotificationPriority priority, boolean useAI,
-    //         String aiPrompt) {
-    //     if (useAI && aiPrompt != null && !aiPrompt.isEmpty()) {
-    //         message = geminiService.generateMessage(aiPrompt);
-    //     }
-    //     log.info("Message Generated from AI "+ message);
-    //     broadcastNotification(title, message, priority);
+    // public void broadcastNotification(String title, String message,
+    // NotificationPriority priority, boolean useAI,
+    // String aiPrompt) {
+    // if (useAI && aiPrompt != null && !aiPrompt.isEmpty()) {
+    // message = geminiService.generateMessage(aiPrompt);
+    // }
+    // log.info("Message Generated from AI "+ message);
+    // broadcastNotification(title, message, priority);
     // }
 
     @Override

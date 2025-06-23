@@ -17,6 +17,9 @@ import com.yash.usermanagement.repository.AddressRepository;
 import com.yash.usermanagement.repository.UserRepository;
 import com.yash.usermanagement.repository.PasswordChangeRequestRepository;
 import com.yash.usermanagement.service.UserService;
+import com.yash.usermanagement.aop.Loggable;
+import com.yash.usermanagement.aop.Auditable;
+import com.yash.usermanagement.aop.Timed;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +42,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Loggable
+    @Auditable
+    @Timed
     public User createUser(User user) {
         try {
             LOG.info("Creating new user with email: {}", user.getEmail());
@@ -92,7 +97,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Loggable
+    @Auditable
+    @Timed
     public User updateUser(UUID id, User userDetails) {
         try {
             LOG.info("Updating user with id: {}", id);
@@ -134,7 +141,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Loggable
+    @Auditable
+    @Timed
     public void deleteUser(UUID id) {
         try {
             LOG.info("Deleting user with id: {}", id);

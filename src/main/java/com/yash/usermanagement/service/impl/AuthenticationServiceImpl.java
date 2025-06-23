@@ -15,6 +15,8 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
+import com.yash.usermanagement.aop.Loggable;
+import com.yash.usermanagement.aop.Auditable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +42,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    @Loggable
+    @Auditable
     public LoginResponseDTO login(LoginRequestDTO loginRequest) {
         LOG.info("Attempting login for user: {}", loginRequest.getEmail());
         try {
@@ -62,8 +66,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             claims.put("userId", user.getId().toString());
             claims.put("email", user.getEmail());
             claims.put("roles", user.getRole().toString());
-            claims.put("firstname",user.getFirstName());
-            claims.put("lastname",user.getLastName());
+            claims.put("firstname", user.getFirstName());
+            claims.put("lastname", user.getLastName());
             // claims.put("iat", System.currentTimeMillis() / 1000);
             // claims.put("exp", (System.currentTimeMillis() / 1000) + 3600);
             LOG.info("Generated token claims: {}", claims);
@@ -96,6 +100,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    @Loggable
+    @Auditable
     public void logout(String token) {
         LOG.info("Processing logout request");
         try {
