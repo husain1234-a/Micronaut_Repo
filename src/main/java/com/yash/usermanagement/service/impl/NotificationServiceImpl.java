@@ -278,15 +278,15 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    @Override
-    public void broadcastNotification(String title, String message, NotificationPriority priority, boolean useAI,
-            String aiPrompt) {
-        if (useAI && aiPrompt != null && !aiPrompt.isEmpty()) {
-            message = geminiService.generateMessage(aiPrompt);
-        }
-        log.info("Message Generated from AI "+ message);
-        broadcastNotification(title, message, priority);
-    }
+    // @Override
+    // public void broadcastNotification(String title, String message, NotificationPriority priority, boolean useAI,
+    //         String aiPrompt) {
+    //     if (useAI && aiPrompt != null && !aiPrompt.isEmpty()) {
+    //         message = geminiService.generateMessage(aiPrompt);
+    //     }
+    //     log.info("Message Generated from AI "+ message);
+    //     broadcastNotification(title, message, priority);
+    // }
 
     @Override
     public void broadcastNotification(String title, String message, NotificationPriority priority) {

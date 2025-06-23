@@ -1,5 +1,7 @@
 package com.yash.usermanagement.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yash.usermanagement.config.GeminiConfig;
 import com.yash.usermanagement.service.GeminiService;
 import io.micronaut.http.HttpRequest;
@@ -20,13 +22,16 @@ public class GeminiServiceImpl implements GeminiService {
     private static final Logger LOG = LoggerFactory.getLogger(GeminiServiceImpl.class);
     private final GeminiConfig geminiConfig;
     private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
     private static final String GEMINI_URL = "/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
 
     @Inject
     public GeminiServiceImpl(GeminiConfig geminiConfig,
-            @Client("https://generativelanguage.googleapis.com") HttpClient httpClient) {
+            @Client("https://generativelanguage.googleapis.com") HttpClient httpClient,
+            ObjectMapper objectMapper) {
         this.geminiConfig = geminiConfig;
         this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -45,12 +50,24 @@ public class GeminiServiceImpl implements GeminiService {
         try {
             LOG.info("Calling Gemini API with prompt: {}", prompt);
             String response = httpClient.toBlocking().retrieve(request);
-            LOG.info("Gemini API response: {}", response);
-            // TODO: Parse response JSON to extract generated text
-            return response;
+            LOG.info("Gemini API raw response: {}", response);
+
+            // Parse the response to extract the generated text
+            JsonNode jsonResponse = objectMapper.readTree(response);
+            String generatedText = jsonResponse
+                    .path("candidates")
+                    .path(0)
+                    .path("content")
+                    .path("parts")
+                    .path(0)
+                    .path("text")
+                    .asText("AI is unable to generate message.");
+
+            LOG.info("Extracted message from Gemini: {}", generatedText);
+            return generatedText;
         } catch (Exception e) {
             LOG.error("Error calling Gemini API: {}", e.getMessage(), e);
-            return "AI is unable to generate message. ";
+            return "AI is unable to generate message. Error: " + e.getMessage();
         }
     }
 }

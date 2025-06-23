@@ -31,8 +31,7 @@ public interface NotificationService {
 
     void broadcastNotification(String title, String message, NotificationPriority priority);
 
-    void broadcastNotification(String title, String message, NotificationPriority priority, boolean useAI,
-            String aiPrompt);
+    // void broadcastNotification(String title, String message, NotificationPriority priority, boolean useAI,String aiPrompt);
 
     void sendAccountDeletionNotification(UUID userId, String email);
 

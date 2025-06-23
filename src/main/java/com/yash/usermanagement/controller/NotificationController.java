@@ -14,6 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.scheduling.annotation.ExecuteOn;
+import com.yash.usermanagement.dto.AIGenerateRequest;
+import com.yash.usermanagement.dto.AIGenerateResponse;
+import com.yash.usermanagement.service.GeminiService;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,9 +26,11 @@ import java.util.UUID;
 public class NotificationController {
     private static final Logger LOG = LoggerFactory.getLogger(NotificationController.class);
     private final NotificationService notificationService;
+    private final GeminiService geminiService;
 
-    public NotificationController(NotificationService notificationService) {
+    public NotificationController(NotificationService notificationService, GeminiService geminiService) {
         this.notificationService = notificationService;
+        this.geminiService = geminiService;
     }
 
     @Post
@@ -83,18 +88,27 @@ public class NotificationController {
         return HttpResponse.noContent();
     }
 
+    @Post("/ai-generate")
+    @Operation(summary = "Generate message using AI")
+    @ExecuteOn(TaskExecutors.BLOCKING)
+    public HttpResponse<AIGenerateResponse> generateAIMessage(@Body @Valid AIGenerateRequest request) {
+        LOG.info("Generating AI message with prompt: {}", request.getPrompt());
+        String generatedMessage = geminiService.generateMessage(request.getPrompt());
+        return HttpResponse.ok(new AIGenerateResponse(generatedMessage));
+    }
+
     @Post("/broadcast")
     @Operation(summary = "Broadcast notification to all users")
     @ExecuteOn(TaskExecutors.BLOCKING)
-    public HttpResponse<Void> broadcastNotification(
-            @Body @Valid BroadcastNotificationRequest request) {
+    public HttpResponse<Void> broadcastNotification(@Body @Valid BroadcastNotificationRequest request) {
         LOG.info("Broadcasting notification: {}", request.getTitle());
         notificationService.broadcastNotification(
                 request.getTitle(),
                 request.getMessage(),
-                request.getPriority(),
-                request.isUseAI(),
-                request.getAiPrompt());
+                request.getPriority()
+                );
+                // request.isUseAI(),
+                // request.getAiPrompt()
         return HttpResponse.accepted();
     }
 
