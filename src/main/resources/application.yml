@@ -8,6 +8,8 @@ micronaut:
   sendgrid:
     api-key: ${SENDGRID_API_KEY:}
     from-email: ${SENDGRID_FROM_EMAIL:micronaut.yash@gmail.com}
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
   notifications:
     admin-email: admin@yash.com
     reset-password-url: http://localhost/reset-password

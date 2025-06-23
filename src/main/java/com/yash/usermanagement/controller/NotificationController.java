@@ -3,14 +3,17 @@ package com.yash.usermanagement.controller;
 import com.yash.usermanagement.model.Notification;
 import com.yash.usermanagement.model.NotificationPriority;
 import com.yash.usermanagement.service.NotificationService;
+import com.yash.usermanagement.dto.BroadcastNotificationRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.*;
+import io.micronaut.scheduling.TaskExecutors;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.scheduling.annotation.ExecuteOn;
 
 import java.util.List;
 import java.util.UUID;
@@ -82,13 +85,16 @@ public class NotificationController {
 
     @Post("/broadcast")
     @Operation(summary = "Broadcast notification to all users")
+    @ExecuteOn(TaskExecutors.BLOCKING)
     public HttpResponse<Void> broadcastNotification(
-            @Body @Valid Notification notification) {
-        LOG.info("Broadcasting notification: {}", notification.getTitle());
+            @Body @Valid BroadcastNotificationRequest request) {
+        LOG.info("Broadcasting notification: {}", request.getTitle());
         notificationService.broadcastNotification(
-                notification.getTitle(),
-                notification.getMessage(),
-                notification.getPriority());
+                request.getTitle(),
+                request.getMessage(),
+                request.getPriority(),
+                request.isUseAI(),
+                request.getAiPrompt());
         return HttpResponse.accepted();
     }
 
@@ -164,37 +170,5 @@ class TestNotificationRequest {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-}
-
-@Serdeable
-class BroadcastNotificationRequest {
-    private String title;
-    private String message;
-    private NotificationPriority priority;
-
-    // Getters and Setters
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public NotificationPriority getPriority() {
-        return priority;
-    }
-
-    public void setPriority(NotificationPriority priority) {
-        this.priority = priority;
     }
 }

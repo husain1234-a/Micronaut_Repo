@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 import com.yash.usermanagement.config.SendGridConfig;
 import com.yash.usermanagement.service.impl.SendGridEmailService;
+import com.yash.usermanagement.service.GeminiService;
 
 @Singleton
 public class NotificationServiceImpl implements NotificationService {
@@ -27,16 +28,19 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
     private final SendGridEmailService sendGridEmailService;
     private final SendGridConfig sendGridConfig;
+    private final GeminiService geminiService;
 
     public NotificationServiceImpl(
             NotificationRepository notificationRepository,
             UserRepository userRepository,
             SendGridEmailService sendGridEmailService,
-            SendGridConfig sendGridConfig) {
+            SendGridConfig sendGridConfig,
+            GeminiService geminiService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.sendGridEmailService = sendGridEmailService;
         this.sendGridConfig = sendGridConfig;
+        this.geminiService = geminiService;
     }
 
     @Override
@@ -150,7 +154,8 @@ public class NotificationServiceImpl implements NotificationService {
                     Notification adminNotification = new Notification();
                     adminNotification.setUserId(admin.getId());
                     adminNotification.setTitle("New Password Change Request");
-                    adminNotification.setMessage("A new password change request has been submitted by user: " + user.getFirstName() + " " + user.getLastName() + " (" + user.getEmail() + ")");
+                    adminNotification.setMessage("A new password change request has been submitted by user: "
+                            + user.getFirstName() + " " + user.getLastName() + " (" + user.getEmail() + ")");
                     adminNotification.setPriority(NotificationPriority.HIGH);
                     adminNotification.setRead(false);
                     adminNotification.setCreatedAt(java.time.LocalDateTime.now());
@@ -274,6 +279,16 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public void broadcastNotification(String title, String message, NotificationPriority priority, boolean useAI,
+            String aiPrompt) {
+        if (useAI && aiPrompt != null && !aiPrompt.isEmpty()) {
+            message = geminiService.generateMessage(aiPrompt);
+        }
+        log.info("Message Generated from AI "+ message);
+        broadcastNotification(title, message, priority);
+    }
+
+    @Override
     public void broadcastNotification(String title, String message, NotificationPriority priority) {
         log.info("Broadcasting notification: {}", title);
         try {
@@ -352,7 +367,8 @@ public class NotificationServiceImpl implements NotificationService {
             Notification notification = new Notification();
             notification.setUserId(userId);
             notification.setTitle("Account Scheduled for Deletion");
-            notification.setMessage("Your account has been scheduled for deletion. If this was not you, please contact support immediately.");
+            notification.setMessage(
+                    "Your account has been scheduled for deletion. If this was not you, please contact support immediately.");
             notification.setPriority(NotificationPriority.HIGH);
             notification.setRead(false);
             notification.setCreatedAt(java.time.LocalDateTime.now());
@@ -379,7 +395,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void markNotificationAsRead(String id) {
         Notification notification = notificationRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id: " + id));
         notification.setRead(true);
         notificationRepository.save(notification);
     }
