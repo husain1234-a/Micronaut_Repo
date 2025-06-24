@@ -4,7 +4,6 @@ import com.yash.usermanagement.model.Notification;
 import com.yash.usermanagement.model.NotificationPriority;
 import com.yash.usermanagement.service.NotificationService;
 import jakarta.inject.Named;
-import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
@@ -13,9 +12,6 @@ import java.util.UUID;
 @Named("push")
 public class PushNotificationService implements NotificationService {
     private static final Logger log = LoggerFactory.getLogger(PushNotificationService.class);
-
-    @Inject
-    FcmService fcmService;
 
     @Override
     public Notification createNotification(Notification notification) {
@@ -75,15 +71,7 @@ public class PushNotificationService implements NotificationService {
 
     @Override
     public void broadcastNotification(String title, String message, NotificationPriority priority) {
-        // TODO: Get all FCM tokens from DB and send notification to each
-        List<String> fcmTokens = getAllFcmTokens(); // Implement this method to fetch tokens from DB
-        for (String token : fcmTokens) {
-            try {
-                fcmService.sendPush(token, title, message);
-            } catch (Exception e) {
-                log.error("Failed to send FCM push notification to token {}: {}", token, e.getMessage());
-            }
-        }
+        log.info("PUSH: broadcastNotification called (not implemented)");
     }
 
     @Override
@@ -94,11 +82,5 @@ public class PushNotificationService implements NotificationService {
     @Override
     public void markNotificationAsRead(String id) {
         log.info("PUSH: markNotificationAsRead called (not implemented)");
-    }
-
-    // Placeholder: Implement this to fetch all FCM tokens from your DB
-    private List<String> getAllFcmTokens() {
-        // TODO: Query your user/device table for all FCM tokens
-        return Collections.emptyList();
     }
 }
