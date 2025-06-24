@@ -25,6 +25,7 @@ import com.yash.usermanagement.model.PasswordChangeRequest;
 import com.yash.usermanagement.model.PasswordChangeStatus;
 import com.yash.usermanagement.model.UserRole;
 import com.yash.usermanagement.repository.PasswordChangeRequestRepository;
+import jakarta.inject.Named;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -36,13 +37,17 @@ public class UserController {
 
     private static final Logger LOG = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
-    private final NotificationService notificationService;
+    private final NotificationService emailNotificationService;
+    private final NotificationService pushNotificationService;
     private final PasswordChangeRequestRepository passwordChangeRequestRepository;
 
-    public UserController(UserService userService, NotificationService notificationService,
-                          PasswordChangeRequestRepository passwordChangeRequestRepository) {
+    public UserController(UserService userService,
+            @Named("email") NotificationService emailNotificationService,
+            @Named("push") NotificationService pushNotificationService,
+            PasswordChangeRequestRepository passwordChangeRequestRepository) {
         this.userService = userService;
-        this.notificationService = notificationService;
+        this.emailNotificationService = emailNotificationService;
+        this.pushNotificationService = pushNotificationService;
         this.passwordChangeRequestRepository = passwordChangeRequestRepository;
     }
 
@@ -56,7 +61,7 @@ public class UserController {
             User createdUser = userService.createUser(user);
 
             // Send welcome notification and email
-            notificationService.sendUserCreationNotification(
+            emailNotificationService.sendUserCreationNotification(
                     createdUser.getId(),
                     createdUser.getEmail(),
                     request.getPassword());
@@ -121,7 +126,7 @@ public class UserController {
 
             // Send deletion notification
             try {
-                notificationService.sendAccountDeletionNotification(user.getId(), user.getEmail());
+                emailNotificationService.sendAccountDeletionNotification(user.getId(), user.getEmail());
             } catch (Exception e) {
                 LOG.error("Failed to send deletion notification email: {}", e.getMessage());
             }
@@ -175,7 +180,7 @@ public class UserController {
 
             // Send notification to admin
             try {
-                notificationService.sendPasswordResetRequestNotification(user.getId(), user.getEmail());
+                emailNotificationService.sendPasswordResetRequestNotification(user.getId(), user.getEmail());
             } catch (Exception e) {
                 LOG.error("Failed to send password reset request email: {}", e.getMessage());
             }
@@ -201,7 +206,7 @@ public class UserController {
             // Verify admin
             User admin = userService.getUserById(request.getAdminId());
             // if (admin.getRole() != UserRole.ADMIN) {
-            //     throw new ValidationException("Only admin can approve password changes");
+            // throw new ValidationException("Only admin can approve password changes");
             // }
 
             // Get user and password change request
@@ -222,7 +227,7 @@ public class UserController {
 
                 // Send approval notification
                 try {
-                    notificationService.sendPasswordResetApprovalNotification(user.getId(), user.getEmail());
+                    emailNotificationService.sendPasswordResetApprovalNotification(user.getId(), user.getEmail());
                 } catch (Exception e) {
                     LOG.error("Failed to send password reset approval email: {}", e.getMessage());
                 }
@@ -238,7 +243,7 @@ public class UserController {
 
                 // Send rejection notification
                 try {
-                    notificationService.sendPasswordChangeRejectionNotification(user.getId(), user.getEmail());
+                    emailNotificationService.sendPasswordChangeRejectionNotification(user.getId(), user.getEmail());
                 } catch (Exception e) {
                     LOG.error("Failed to send password change rejection email: {}", e.getMessage());
                 }
@@ -302,7 +307,7 @@ public class UserController {
             // Send approval notification
             try {
                 User user = userService.getUserById(req.getUserId());
-                notificationService.sendPasswordResetApprovalNotification(user.getId(), user.getEmail());
+                emailNotificationService.sendPasswordResetApprovalNotification(user.getId(), user.getEmail());
             } catch (Exception e) {
                 LOG.error("Failed to send password reset approval notification: {}", e.getMessage());
             }
@@ -315,7 +320,7 @@ public class UserController {
             // Send rejection notification
             try {
                 User user = userService.getUserById(req.getUserId());
-                notificationService.sendPasswordChangeRejectionNotification(user.getId(), user.getEmail());
+                emailNotificationService.sendPasswordChangeRejectionNotification(user.getId(), user.getEmail());
             } catch (Exception e) {
                 LOG.error("Failed to send password change rejection notification: {}", e.getMessage());
             }

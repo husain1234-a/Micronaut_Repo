@@ -17,6 +17,7 @@ import io.micronaut.scheduling.annotation.ExecuteOn;
 import com.yash.usermanagement.dto.AIGenerateRequest;
 import com.yash.usermanagement.dto.AIGenerateResponse;
 import com.yash.usermanagement.service.GeminiService;
+import jakarta.inject.Named;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,11 +26,16 @@ import java.util.UUID;
 @Tag(name = "Notification Management")
 public class NotificationController {
     private static final Logger LOG = LoggerFactory.getLogger(NotificationController.class);
-    private final NotificationService notificationService;
+    private final NotificationService emailNotificationService;
+    private final NotificationService pushNotificationService;
     private final GeminiService geminiService;
 
-    public NotificationController(NotificationService notificationService, GeminiService geminiService) {
-        this.notificationService = notificationService;
+    public NotificationController(
+            @Named("email") NotificationService emailNotificationService,
+            @Named("push") NotificationService pushNotificationService,
+            GeminiService geminiService) {
+        this.emailNotificationService = emailNotificationService;
+        this.pushNotificationService = pushNotificationService;
         this.geminiService = geminiService;
     }
 
@@ -37,21 +43,21 @@ public class NotificationController {
     @Operation(summary = "Create a new notification")
     public HttpResponse<Notification> createNotification(@Body @Valid Notification notification) {
         LOG.info("Creating new notification");
-        return HttpResponse.created(notificationService.createNotification(notification));
+        return HttpResponse.created(emailNotificationService.createNotification(notification));
     }
 
     @Get
     @Operation(summary = "Get all notifications")
     public HttpResponse<List<Notification>> getAllNotifications() {
         LOG.info("Fetching all notifications");
-        return HttpResponse.ok(notificationService.getAllNotifications());
+        return HttpResponse.ok(emailNotificationService.getAllNotifications());
     }
 
     @Get("/{id}")
     @Operation(summary = "Get notification by ID")
     public HttpResponse<Notification> getNotificationById(@PathVariable String id) {
         LOG.info("Fetching notification with id: {}", id);
-        return notificationService.getNotificationById(id)
+        return emailNotificationService.getNotificationById(id)
                 .map(HttpResponse::ok)
                 .orElse(HttpResponse.notFound());
     }
@@ -60,7 +66,7 @@ public class NotificationController {
     @Operation(summary = "Get notifications by user ID")
     public HttpResponse<List<Notification>> getNotificationsByUserId(@PathVariable UUID userId) {
         LOG.info("Fetching notifications for user: {}", userId);
-        return HttpResponse.ok(notificationService.getNotificationsByUserId(userId));
+        return HttpResponse.ok(emailNotificationService.getNotificationsByUserId(userId));
     }
 
     @Get("/user/{userId}/priority/{priority}")
@@ -69,14 +75,14 @@ public class NotificationController {
             @PathVariable UUID userId,
             @PathVariable NotificationPriority priority) {
         LOG.info("Fetching {} priority notifications for user: {}", priority, userId);
-        return HttpResponse.ok(notificationService.getNotificationsByUserIdAndPriority(userId, priority));
+        return HttpResponse.ok(emailNotificationService.getNotificationsByUserIdAndPriority(userId, priority));
     }
 
     @Patch("/{id}/read")
     @Operation(summary = "Mark notification as read")
     public HttpResponse<Void> markNotificationAsRead(@PathVariable String id) {
         LOG.info("Marking notification as read: {}", id);
-        notificationService.markNotificationAsRead(id);
+        emailNotificationService.markNotificationAsRead(id);
         return HttpResponse.noContent();
     }
 
@@ -84,7 +90,7 @@ public class NotificationController {
     @Operation(summary = "Delete notification")
     public HttpResponse<Void> deleteNotification(@PathVariable String id) {
         LOG.info("Deleting notification with id: {}", id);
-        notificationService.deleteNotification(id);
+        emailNotificationService.deleteNotification(id);
         return HttpResponse.noContent();
     }
 
@@ -101,21 +107,24 @@ public class NotificationController {
     @Operation(summary = "Broadcast notification to all users")
     @ExecuteOn(TaskExecutors.BLOCKING)
     public HttpResponse<Void> broadcastNotification(@Body @Valid BroadcastNotificationRequest request) {
-        LOG.info("Broadcasting notification: {}", request.getTitle());
+        LOG.info("Broadcasting notification: {} via {}", request.getTitle(), request.getChannel());
+        NotificationService notificationService;
+        if ("push".equalsIgnoreCase(request.getChannel())) {
+            notificationService = pushNotificationService;
+        } else {
+            notificationService = emailNotificationService;
+        }
         notificationService.broadcastNotification(
                 request.getTitle(),
                 request.getMessage(),
-                request.getPriority()
-                );
-                // request.isUseAI(),
-                // request.getAiPrompt()
+                request.getPriority());
         return HttpResponse.accepted();
     }
 
     @Post("/test/welcome")
     @Operation(summary = "Test welcome notification")
     public void testWelcomeNotification(@Body TestNotificationRequest request) {
-        notificationService.sendUserCreationNotification(
+        emailNotificationService.sendUserCreationNotification(
                 request.getUserId(),
                 request.getEmail(),
                 request.getPassword());
@@ -124,7 +133,7 @@ public class NotificationController {
     @Post("/test/reset-request")
     @Operation(summary = "Test password reset request notification")
     public void testResetRequestNotification(@Body TestNotificationRequest request) {
-        notificationService.sendPasswordResetRequestNotification(
+        emailNotificationService.sendPasswordResetRequestNotification(
                 request.getUserId(),
                 request.getEmail());
     }
@@ -132,7 +141,7 @@ public class NotificationController {
     @Post("/test/reset-approval")
     @Operation(summary = "Test password reset approval notification")
     public void testResetApprovalNotification(@Body TestNotificationRequest request) {
-        notificationService.sendPasswordResetApprovalNotification(
+        emailNotificationService.sendPasswordResetApprovalNotification(
                 request.getUserId(),
                 request.getEmail());
     }
@@ -140,7 +149,7 @@ public class NotificationController {
     @Post("/test/password-change")
     @Operation(summary = "Test password change notification")
     public void testPasswordChangeNotification(@Body TestNotificationRequest request) {
-        notificationService.sendPasswordChangeNotification(
+        emailNotificationService.sendPasswordChangeNotification(
                 request.getUserId(),
                 request.getEmail());
     }
@@ -148,7 +157,7 @@ public class NotificationController {
     @Post("/test/broadcast")
     @Operation(summary = "Test broadcast notification")
     public void testBroadcastNotification(@Body BroadcastNotificationRequest request) {
-        notificationService.broadcastNotification(
+        emailNotificationService.broadcastNotification(
                 request.getTitle(),
                 request.getMessage(),
                 request.getPriority());

@@ -16,11 +16,12 @@ import java.util.UUID;
 import com.yash.usermanagement.config.SendGridConfig;
 import com.yash.usermanagement.service.impl.SendGridEmailService;
 import com.yash.usermanagement.service.GeminiService;
+import jakarta.inject.Named;
 
-@Singleton
-public class NotificationServiceImpl implements NotificationService {
+@Named("email")
+public class EmailNotificationService implements NotificationService {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(EmailNotificationService.class);
     // private static final String ADMIN_EMAIL = "en20cs301184@medicaps.ac.in";
     private static final String RESET_PASSWORD_URL = "http://localhost/reset-password";
 
@@ -30,7 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final SendGridConfig sendGridConfig;
     private final GeminiService geminiService;
 
-    public NotificationServiceImpl(
+    public EmailNotificationService(
             NotificationRepository notificationRepository,
             UserRepository userRepository,
             SendGridEmailService sendGridEmailService,

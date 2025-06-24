@@ -6,6 +6,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * NotificationService interface. Implementations should be annotated
+ * with @Named (e.g., "email", "sms", "push").
+ * Consumers should inject with @Named or inject a List<NotificationService> for
+ * dynamic selection.
+ */
 public interface NotificationService {
     Notification createNotification(Notification notification);
 
@@ -31,7 +37,8 @@ public interface NotificationService {
 
     void broadcastNotification(String title, String message, NotificationPriority priority);
 
-    // void broadcastNotification(String title, String message, NotificationPriority priority, boolean useAI,String aiPrompt);
+    // void broadcastNotification(String title, String message, NotificationPriority
+    // priority, boolean useAI,String aiPrompt);
 
     void sendAccountDeletionNotification(UUID userId, String email);
 

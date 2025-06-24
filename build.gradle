@@ -55,11 +55,15 @@ dependencies {
     implementation("io.micronaut:micronaut-http-client")
     implementation("com.fasterxml.jackson.core:jackson-databind")
 
+    // Firebase Admin SDK dependency
+    implementation("com.google.firebase:firebase-admin:9.2.0")
+
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly('org.postgresql:postgresql:42.7.2')
     
     testImplementation("io.micronaut:micronaut-http-client")
     implementation 'io.projectreactor:reactor-core:3.5.11'
+    implementation("io.micronaut:micronaut-websocket:4.9.4")
 }
 
 application {

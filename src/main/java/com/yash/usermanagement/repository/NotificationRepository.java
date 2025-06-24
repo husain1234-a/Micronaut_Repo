@@ -47,9 +47,8 @@ public class NotificationRepository {
         return notificationTable.scan()
                 .items()
                 .stream()
-                .filter(notification -> 
-                    notification.getUserId().equals(userId) && 
-                    notification.getPriority() == priority)
+                .filter(notification -> notification.getUserId().equals(userId) &&
+                        notification.getPriority() == priority)
                 .collect(Collectors.toList());
     }
 
@@ -72,4 +71,4 @@ public class NotificationRepository {
                 .filter(notification -> notification.getPriority() == priority)
                 .collect(Collectors.toList());
     }
-} 
+}

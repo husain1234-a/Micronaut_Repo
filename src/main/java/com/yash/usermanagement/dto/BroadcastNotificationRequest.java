@@ -7,7 +7,6 @@ import io.micronaut.serde.annotation.Serdeable;
 import java.util.List;
 import java.util.UUID;
 
-
 @Serdeable
 public class BroadcastNotificationRequest {
     private String title;
@@ -15,6 +14,7 @@ public class BroadcastNotificationRequest {
     private NotificationPriority priority;
     private boolean useAI;
     private String aiPrompt;
+    private String channel; // "email" or "push"
 
     // Getters and Setters
     public String getTitle() {
@@ -55,5 +55,13 @@ public class BroadcastNotificationRequest {
 
     public void setAiPrompt(String aiPrompt) {
         this.aiPrompt = aiPrompt;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
     }
 }

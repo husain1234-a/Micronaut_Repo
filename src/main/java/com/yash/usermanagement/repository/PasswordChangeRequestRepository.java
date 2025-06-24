@@ -9,8 +9,10 @@ import io.micronaut.data.repository.CrudRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import jakarta.inject.Singleton;
 
 @JdbcRepository(dialect = Dialect.POSTGRES)
+@Singleton
 public interface PasswordChangeRequestRepository extends CrudRepository<PasswordChangeRequest, UUID> {
     List<PasswordChangeRequest> findByUserId(UUID userId);
 

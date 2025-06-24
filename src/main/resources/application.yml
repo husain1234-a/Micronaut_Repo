@@ -66,6 +66,10 @@ micronaut:
         access: isAnonymous()
       - pattern: /v3/api-docs/**
         access: isAnonymous()
+      - pattern: /ws/notifications/**
+        access: isAnonymous()
+      - pattern: /ws/**
+        access: isAnonymous()
       - pattern: /**
         access: isAuthenticated()
   authentication: bearer
@@ -129,3 +133,7 @@ openapi:
   title: User Management API
   version: 1.0
   description: API for managing users and their addresses
+
+fcm:
+  enabled: true
+  service-account-path: "src/main/resources/firebase-service-account.json"
