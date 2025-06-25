@@ -38,4 +38,6 @@ public interface UserService {
     List<PasswordChangeRequest> getPendingPasswordChangeRequests();
 
     Optional<PasswordChangeRequest> getPasswordChangeRequestByUserId(UUID userId);
+
+    void registerFcmToken(String token, String userEmail);
 }

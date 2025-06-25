@@ -107,17 +107,13 @@ public class NotificationController {
     @Operation(summary = "Broadcast notification to all users")
     @ExecuteOn(TaskExecutors.BLOCKING)
     public HttpResponse<Void> broadcastNotification(@Body @Valid BroadcastNotificationRequest request) {
-        LOG.info("Broadcasting notification: {} via {}", request.getTitle(), request.getChannel());
-        NotificationService notificationService;
-        if ("push".equalsIgnoreCase(request.getChannel())) {
-            notificationService = pushNotificationService;
-        } else {
-            notificationService = emailNotificationService;
+        if (!"push".equalsIgnoreCase(request.getChannel()) && !"email".equalsIgnoreCase(request.getChannel())) {
+            return HttpResponse.badRequest();
         }
-        notificationService.broadcastNotification(
-                request.getTitle(),
-                request.getMessage(),
-                request.getPriority());
+        NotificationService notificationService = "push".equalsIgnoreCase(request.getChannel())
+            ? pushNotificationService
+            : emailNotificationService;
+        notificationService.broadcastNotification(request.getTitle(), request.getMessage(), request.getPriority());
         return HttpResponse.accepted();
     }
 

@@ -1,7 +1,6 @@
 package com.yash.usermanagement.service.impl;
 
-import com.yash.usermanagement.model.PasswordChangeRequest;
-import com.yash.usermanagement.model.PasswordChangeStatus;
+import com.yash.usermanagement.model.*;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -10,12 +9,10 @@ import org.slf4j.LoggerFactory;
 import com.yash.usermanagement.exception.DatabaseException;
 import com.yash.usermanagement.exception.ResourceNotFoundException;
 import com.yash.usermanagement.exception.ValidationException;
-import com.yash.usermanagement.model.Address;
-import com.yash.usermanagement.model.User;
-import com.yash.usermanagement.model.UserRole;
 import com.yash.usermanagement.repository.AddressRepository;
 import com.yash.usermanagement.repository.UserRepository;
 import com.yash.usermanagement.repository.PasswordChangeRequestRepository;
+import com.yash.usermanagement.repository.UserDeviceRepository;
 import com.yash.usermanagement.service.UserService;
 import com.yash.usermanagement.aop.Loggable;
 import com.yash.usermanagement.aop.Auditable;
@@ -33,12 +30,14 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final PasswordChangeRequestRepository passwordChangeRequestRepository;
+    private final UserDeviceRepository userDeviceRepository;
 
     public UserServiceImpl(UserRepository userRepository, AddressRepository addressRepository,
-            PasswordChangeRequestRepository passwordChangeRequestRepository) {
+            PasswordChangeRequestRepository passwordChangeRequestRepository, UserDeviceRepository userDeviceRepository) {
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
         this.passwordChangeRequestRepository = passwordChangeRequestRepository;
+        this.userDeviceRepository = userDeviceRepository;
     }
 
     @Override
@@ -330,5 +329,30 @@ public class UserServiceImpl implements UserService {
             LOG.error("Error validating current password for user with ID {}: {}", userId, e.getMessage(), e);
             throw new DatabaseException("Failed to validate current password", e);
         }
+    }
+
+    @Override
+    @Transactional
+    public void registerFcmToken(String token, String userEmail) {
+        LOG.info("Registering FCM token for user: {}", userEmail);
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userEmail));
+
+        // Check if this token is already registered for this user
+        List<UserDevice> existingDevices = userDeviceRepository.findByUserId(user.getId());
+        boolean alreadyRegistered = existingDevices.stream()
+            .anyMatch(device -> device.getFcmToken().equals(token));
+        if (alreadyRegistered) {
+            LOG.info("Token already registered for user: {}", userEmail);
+            return;
+        }
+
+        UserDevice userDevice = new UserDevice();
+        userDevice.setUserId(user.getId());
+        userDevice.setFcmToken(token);
+        userDevice.setCreatedAt(LocalDateTime.now());
+
+        userDeviceRepository.save(userDevice);
+        LOG.info("Successfully registered FCM token for user {}", userEmail);
     }
 }

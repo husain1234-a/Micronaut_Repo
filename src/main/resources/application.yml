@@ -66,10 +66,6 @@ micronaut:
         access: isAnonymous()
       - pattern: /v3/api-docs/**
         access: isAnonymous()
-      - pattern: /ws/notifications/**
-        access: isAnonymous()
-      - pattern: /ws/**
-        access: isAnonymous()
       - pattern: /**
         access: isAuthenticated()
   authentication: bearer
@@ -88,7 +84,7 @@ logger:
     io.micronaut.security: TRACE
     io.micronaut.security.rules: TRACE
     com.yash.usermanagement: DEBUG
-
+ 
 datasources:
   default:
     url: "jdbc:postgresql://localhost:5432/usermanagement"
@@ -112,28 +108,27 @@ datasources:
     timeBetweenEvictionRunsMillis: 60000
     minEvictableIdleTimeMillis: 300000
     jmxEnabled: true
-
+ 
 # DynamoDB Configuration
 dynamodb:
   endpoint: "http://localhost:8000"
-
+ 
 # AWS Configuration
 aws:
   region: ${AWS_REGION:us-east-1}
   credentials:
     access-key-id: ${ACCESS_KEY:dummy}
     secret-access-key: ${SECRET_KEY:dummy}
-
+ 
 swagger:
   title: User Management API
   version: 1.0.0
   description: API for managing users and their notifications
-
+ 
 openapi:
   title: User Management API
   version: 1.0
   description: API for managing users and their addresses
 
-fcm:
-  enabled: true
-  service-account-path: "src/main/resources/firebase-service-account.json"
+firebase:
+  service-account-key-path: classpath:firebase-service-account.json

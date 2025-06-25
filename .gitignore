@@ -15,4 +15,5 @@ out/
 .factorypath
 .env
 # Firebase service account (do not commit to git)
-src/main/resources/firebase-service-account.json
+# src/main/resources/firebase-service-account.json
+**/firebase-service-account.json
